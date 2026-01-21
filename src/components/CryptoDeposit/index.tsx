@@ -16,7 +16,6 @@ const walletTabs = [
   { id: "deposit", label: "Deposit" },
   { id: "send", label: "Send" },
   { id: "how-to-buy", label: "How to buy crypto" },
-  { id: "tip", label: "Tip" },
 ];
 
 const paymentTabs = [
@@ -91,10 +90,10 @@ const CryptoDeposit = ({
                 <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
                   <p className="font-medium">Recommended providers</p>
                   <ul className="space-y-1 text-muted-foreground">
-                    <li>• Swapped — fast and simple purchases</li>
-                    <li>• MoonPay — cards and bank transfers</li>
-                    <li>• Transak — supports local currencies</li>
-                    <li>• Ramp — beginner friendly</li>
+                    <li>• <a href="https://swapped.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Swapped</a> — fast and simple purchases</li>
+                    <li>• <a href="https://moonpay.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">MoonPay</a> — cards and bank transfers</li>
+                    <li>• <a href="https://transak.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Transak</a> — supports local currencies</li>
+                    <li>• <a href="https://ramp.network" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Ramp</a> — beginner friendly</li>
                   </ul>
                 </div>
 
@@ -119,12 +118,6 @@ const CryptoDeposit = ({
             </div>
           )}
 
-          {activeTab === "tip" && (
-            <div className="py-8 text-center">
-              <h3 className="text-lg font-semibold mb-2">Send a Tip</h3>
-              <p className="text-muted-foreground text-sm">Send crypto tips to your favorite creators.</p>
-            </div>
-          )}
         </div>
       </div>
     </div>
