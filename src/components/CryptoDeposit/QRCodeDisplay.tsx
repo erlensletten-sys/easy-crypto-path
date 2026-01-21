@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { QRCodeSVG } from "qrcode.react";
 import type { Currency } from "./CurrencySelector";
 
 interface QRCodeDisplayProps {
@@ -20,35 +21,21 @@ const QRCodeDisplay = ({ currency }: QRCodeDisplayProps) => {
     setTimeout(() => setCopiedAddress(false), 2000);
   };
 
-  // Generate a deterministic pattern based on address
-  const getPattern = (address: string) => {
-    return Array.from({ length: 64 }).map((_, i) => {
-      const charCode = address.charCodeAt(i % address.length) || 0;
-      return (charCode + i) % 3 !== 0;
-    });
-  };
-
-  const pattern = getPattern(currency.address);
-
   return (
     <div className="flex flex-col items-center gap-4 py-6">
-      {/* QR Code */}
+      {/* Real QR Code */}
       <div 
         className="bg-foreground p-3 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
         onClick={handleCopyAddress}
         title="Click to copy address"
       >
-        <div className="w-32 h-32 grid grid-cols-8 gap-0.5">
-          {pattern.map((filled, i) => (
-            <div
-              key={i}
-              className="w-full aspect-square"
-              style={{
-                backgroundColor: filled ? 'hsl(230 25% 8%)' : 'transparent'
-              }}
-            />
-          ))}
-        </div>
+        <QRCodeSVG
+          value={currency.address}
+          size={128}
+          bgColor="hsl(220, 20%, 95%)"
+          fgColor="hsl(230, 25%, 8%)"
+          level="M"
+        />
       </div>
 
       {/* Address with copy button */}
