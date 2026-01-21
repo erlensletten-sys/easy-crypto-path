@@ -97,23 +97,24 @@ const QRCodeDisplay = ({
       {showAmount && (
         <div className="w-full">
           <label className="block text-sm text-muted-foreground mb-2 text-center">Amount to Pay</label>
-          {/* FIAT amount display */}
-          <div className="text-center mb-2">
-            <span className="text-2xl font-bold">${fiatAmount}</span>
-            <span className="text-muted-foreground ml-1">{fiatCurrency}</span>
-          </div>
           <button
             onClick={handleCopyAmount}
-            className="w-full flex items-center justify-between gap-2 p-3 rounded-lg bg-secondary border border-border hover:border-primary/50 transition-colors text-left"
+            className="w-full flex flex-col gap-1 p-3 rounded-lg bg-secondary border border-border hover:border-primary/50 transition-colors"
           >
-            <span className="text-lg font-semibold">
-              {amount} <span className="text-muted-foreground">{currency.symbol}</span>
+            <div className="w-full flex items-center justify-between">
+              <span className="text-lg font-semibold">
+                {amount} <span className="text-muted-foreground">{currency.symbol}</span>
+              </span>
+              {copiedAmount ? (
+                <Check className="w-4 h-4 text-crypto-green flex-shrink-0" />
+              ) : (
+                <Copy className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              )}
+            </div>
+            {/* FIAT amount with gradient - inside copy box */}
+            <span className="text-xs font-medium bg-gradient-to-r from-muted-foreground to-muted-foreground/50 bg-clip-text text-transparent">
+              ≈ ${fiatAmount} {fiatCurrency}
             </span>
-            {copiedAmount ? (
-              <Check className="w-4 h-4 text-crypto-green flex-shrink-0" />
-            ) : (
-              <Copy className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-            )}
           </button>
         </div>
       )}
