@@ -7,10 +7,7 @@ const Index = () => {
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
-        <CryptoDeposit variant="wallet" title="Wallet" />
-        <CryptoDeposit variant="payment" title="Payment Processor" />
-      </div>
+      <CryptoDeposit variant="wallet" title="Wallet" />
     </div>
   );
 };
