@@ -6,6 +6,52 @@
 
 @layer base {
   :root {
+    /* Light mode - clean, professional with purple brand */
+    --background: 220 20% 98%;
+    --foreground: 230 25% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 230 25% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 230 25% 12%;
+
+    --primary: 265 80% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 230 15% 92%;
+    --secondary-foreground: 230 25% 20%;
+
+    --muted: 230 15% 94%;
+    --muted-foreground: 230 10% 40%;
+
+    --accent: 265 70% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 230 15% 88%;
+    --input: 230 15% 92%;
+    --ring: 265 80% 55%;
+
+    --radius: 0.75rem;
+
+    /* Custom tokens - light mode */
+    --crypto-green: 145 70% 40%;
+    --crypto-orange: 35 90% 45%;
+    --crypto-blue: 210 90% 50%;
+    --crypto-teal: 175 70% 35%;
+    --crypto-pink: 330 80% 50%;
+    --crypto-purple: 280 70% 45%;
+    --crypto-gray: 220 10% 45%;
+    
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(230 20% 97%) 100%);
+    --gradient-hover: linear-gradient(180deg, hsl(230 20% 97%) 0%, hsl(230 20% 94%) 100%);
+    --shadow-glow: 0 0 20px hsl(265 80% 55% / 0.12);
+  }
+
+  .dark {
     --background: 230 25% 8%;
     --foreground: 220 20% 95%;
 
@@ -36,7 +82,7 @@
 
     --radius: 0.75rem;
 
-    /* Custom tokens */
+    /* Custom tokens - dark mode */
     --crypto-green: 145 70% 50%;
     --crypto-orange: 35 90% 55%;
     --crypto-blue: 210 90% 60%;
@@ -48,11 +94,6 @@
     --gradient-card: linear-gradient(180deg, hsl(230 20% 14%) 0%, hsl(230 20% 10%) 100%);
     --gradient-hover: linear-gradient(180deg, hsl(230 20% 18%) 0%, hsl(230 20% 14%) 100%);
     --shadow-glow: 0 0 20px hsl(265 80% 60% / 0.15);
-  }
-
-  .dark {
-    --background: 230 25% 8%;
-    --foreground: 220 20% 95%;
   }
 }
 
