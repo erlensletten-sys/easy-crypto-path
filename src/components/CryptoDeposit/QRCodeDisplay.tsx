@@ -6,10 +6,13 @@ import type { Currency } from "./CurrencySelector";
 
 interface QRCodeDisplayProps {
   currency: Currency;
+  showAmount?: boolean;
+  amount?: string;
 }
 
-const QRCodeDisplay = ({ currency }: QRCodeDisplayProps) => {
+const QRCodeDisplay = ({ currency, showAmount = false, amount = "0.00" }: QRCodeDisplayProps) => {
   const [copiedAddress, setCopiedAddress] = useState(false);
+  const [copiedAmount, setCopiedAmount] = useState(false);
 
   const handleCopyAddress = async () => {
     await navigator.clipboard.writeText(currency.address);
@@ -21,8 +24,54 @@ const QRCodeDisplay = ({ currency }: QRCodeDisplayProps) => {
     setTimeout(() => setCopiedAddress(false), 2000);
   };
 
+  const handleCopyAmount = async () => {
+    await navigator.clipboard.writeText(amount);
+    setCopiedAmount(true);
+    toast({
+      title: "Copied!",
+      description: "Amount copied to clipboard",
+    });
+    setTimeout(() => setCopiedAmount(false), 2000);
+  };
+
+  // Generate payment URI for QR code
+  const getPaymentUri = () => {
+    const prefix = {
+      btc: "bitcoin",
+      eth: "ethereum",
+      usdt: "ethereum",
+      sol: "solana",
+      xmr: "monero",
+    }[currency.id] || currency.id;
+    
+    if (showAmount && parseFloat(amount) > 0) {
+      return `${prefix}:${currency.address}?amount=${amount}`;
+    }
+    return currency.address;
+  };
+
   return (
     <div className="flex flex-col items-center gap-4 py-6">
+      {/* Amount to pay (for payment processor) */}
+      {showAmount && (
+        <div className="w-full">
+          <label className="block text-sm text-muted-foreground mb-2">Amount to Pay</label>
+          <button
+            onClick={handleCopyAmount}
+            className="w-full flex items-center justify-between gap-2 p-3 rounded-lg bg-secondary border border-border hover:border-primary/50 transition-colors text-left"
+          >
+            <span className="text-lg font-semibold">
+              {amount} <span className="text-muted-foreground">{currency.symbol}</span>
+            </span>
+            {copiedAmount ? (
+              <Check className="w-4 h-4 text-crypto-green flex-shrink-0" />
+            ) : (
+              <Copy className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            )}
+          </button>
+        </div>
+      )}
+
       {/* Real QR Code */}
       <div 
         className="bg-foreground p-3 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
@@ -30,7 +79,7 @@ const QRCodeDisplay = ({ currency }: QRCodeDisplayProps) => {
         title="Click to copy address"
       >
         <QRCodeSVG
-          value={currency.address}
+          value={getPaymentUri()}
           size={128}
           bgColor="hsl(220, 20%, 95%)"
           fgColor="hsl(230, 25%, 8%)"
@@ -40,6 +89,7 @@ const QRCodeDisplay = ({ currency }: QRCodeDisplayProps) => {
 
       {/* Address with copy button */}
       <div className="w-full">
+        <label className="block text-sm text-muted-foreground mb-2">Send to Address</label>
         <button
           onClick={handleCopyAddress}
           className="w-full flex items-center justify-between gap-2 p-3 rounded-lg bg-secondary border border-border hover:border-primary/50 transition-colors text-left"

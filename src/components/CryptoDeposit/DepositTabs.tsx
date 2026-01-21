@@ -3,18 +3,13 @@ interface Tab {
   label: string;
 }
 
-const tabs: Tab[] = [
-  { id: "deposit", label: "Deposit" },
-  { id: "how-to-buy", label: "How to buy crypto" },
-  { id: "tip", label: "Tip" },
-];
-
 interface DepositTabsProps {
   activeTab: string;
   onTabChange: (tabId: string) => void;
+  tabs: Tab[];
 }
 
-const DepositTabs = ({ activeTab, onTabChange }: DepositTabsProps) => {
+const DepositTabs = ({ activeTab, onTabChange, tabs }: DepositTabsProps) => {
   return (
     <div className="flex border-b border-border">
       {tabs.map((tab) => (
