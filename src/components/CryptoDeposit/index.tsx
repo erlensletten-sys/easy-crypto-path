@@ -14,11 +14,11 @@ interface CryptoDepositProps {
 
 const walletTabs = [
   { id: "deposit", label: "Deposit" },
-  { id: "send", label: "Send" },
+  { id: "send", label: "Withdraw" },
 ];
 
 const paymentTabs = [
-  { id: "deposit", label: "Amount to be paid" },
+  { id: "deposit", label: "Purchase" },
 ];
 
 const CryptoDeposit = ({
