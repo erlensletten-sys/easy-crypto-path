@@ -10,13 +10,17 @@ interface DepositTabsProps {
 }
 
 const DepositTabs = ({ activeTab, onTabChange, tabs }: DepositTabsProps) => {
+  const isSingleTab = tabs.length === 1;
+  
   return (
-    <div className="flex border-b border-border">
+    <div className={`flex border-b border-border ${isSingleTab ? 'justify-center' : ''}`}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
           className={`px-4 py-3 text-sm font-medium transition-colors relative ${
+            isSingleTab ? '' : 'flex-1 text-center'
+          } ${
             activeTab === tab.id
               ? 'text-foreground'
               : 'text-muted-foreground hover:text-foreground'
