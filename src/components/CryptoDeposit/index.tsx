@@ -18,6 +18,7 @@ interface CryptoDepositProps {
 const walletTabs: Tab[] = [
   { id: "deposit", label: "Deposit" },
   { id: "send", label: "Withdraw" },
+  { id: "buy-crypto", label: "Buy Crypto", icon: <ExternalLink size={16} />, externalLinks: true },
 ];
 
 const paymentTabs: Tab[] = [
@@ -70,7 +71,7 @@ const CryptoDeposit = ({
         <div className="p-4">
           {showSupport ? (
             <SupportContent onClose={() => setShowSupport(false)} />
-          ) : showBuyCryptoLinks && variant === "payment" ? (
+          ) : showBuyCryptoLinks ? (
             <div className="space-y-4">
               <div className="text-center">
                 <p className="text-muted-foreground text-sm mb-4">Purchase cryptocurrency using trusted payment providers</p>

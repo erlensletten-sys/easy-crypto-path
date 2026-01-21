@@ -29,30 +29,36 @@ const DepositTabs = ({ activeTab, onTabChange, tabs, onSupportClick, onExternalL
   
   return (
     <div className={`flex border-b border-border ${isSingleTab ? 'justify-center' : ''}`}>
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => handleTabClick(tab)}
-          className={`px-4 py-3 text-sm font-medium transition-colors relative flex items-center justify-center gap-2 ${
-            isSingleTab ? '' : 'flex-1 text-center'
-          } ${
-            activeTab === tab.id && !tab.externalLinks
-              ? tab.highlight 
-                ? 'text-primary font-semibold'
-                : 'text-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          {tab.icon}
-          {tab.label}
-          {activeTab === tab.id && !tab.externalLinks && (
-            <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${tab.highlight ? 'bg-primary' : 'bg-primary'}`} />
-          )}
-        </button>
-      ))}
+      <div className={`flex ${isSingleTab ? '' : 'flex-1'}`}>
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => handleTabClick(tab)}
+            className={`flex-1 px-4 py-3 text-sm font-medium relative flex items-center justify-center gap-2 transition-all duration-200 ease-out ${
+              activeTab === tab.id && !tab.externalLinks
+                ? tab.highlight 
+                  ? 'text-primary font-semibold scale-[1.02]'
+                  : 'text-foreground scale-[1.02]'
+                : 'text-muted-foreground hover:text-foreground hover:scale-[1.01]'
+            }`}
+          >
+            <span className={`transition-transform duration-200 ${activeTab === tab.id && !tab.externalLinks ? 'scale-110' : ''}`}>
+              {tab.icon}
+            </span>
+            {tab.label}
+            <div 
+              className={`absolute bottom-0 left-0 right-0 h-0.5 bg-primary transition-all duration-200 ease-out origin-center ${
+                activeTab === tab.id && !tab.externalLinks 
+                  ? 'scale-x-100 opacity-100' 
+                  : 'scale-x-0 opacity-0'
+              }`} 
+            />
+          </button>
+        ))}
+      </div>
       <button
         onClick={onSupportClick}
-        className="px-4 py-3 text-sm font-medium transition-colors text-muted-foreground hover:text-foreground ml-auto flex items-center gap-1.5"
+        className="px-4 py-3 text-sm font-medium transition-all duration-200 text-muted-foreground hover:text-foreground flex items-center gap-1.5 hover:scale-[1.02]"
       >
         <HelpCircle size={16} />
         Support
