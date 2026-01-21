@@ -32,6 +32,11 @@ const DepositTabs = ({ activeTab, onTabChange, tabs }: DepositTabsProps) => {
           )}
         </button>
       ))}
+      <button
+        className="px-4 py-3 text-sm font-medium transition-colors text-muted-foreground hover:text-foreground ml-auto"
+      >
+        Support
+      </button>
     </div>
   );
 };
