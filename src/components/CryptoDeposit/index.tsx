@@ -131,6 +131,28 @@ const CryptoDeposit = ({
                         <p className="text-xs text-muted-foreground">Cards & bank transfers</p>
                       </div>
                     </a>
+                    <a 
+                      href="https://transak.com" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
+                    >
+                      <div>
+                        <p className="font-medium text-sm">Transak</p>
+                        <p className="text-xs text-muted-foreground">Local payment methods</p>
+                      </div>
+                    </a>
+                    <a 
+                      href="https://ramp.network" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
+                    >
+                      <div>
+                        <p className="font-medium text-sm">Ramp Network</p>
+                        <p className="text-xs text-muted-foreground">Beginner friendly</p>
+                      </div>
+                    </a>
                   </div>
                   <p className="text-[10px] text-muted-foreground text-center">
                     Availability, fees, and verification may vary by provider and region.
