@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, Check, Copy } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+
 interface Currency {
   id: string;
   name: string;
@@ -9,6 +10,16 @@ interface Currency {
   color: string;
   address: string;
 }
+
+// Mock exchange rates (USD)
+const exchangeRates: Record<string, number> = {
+  btc: 67432.50,
+  eth: 3521.80,
+  usdt: 1.00,
+  sol: 142.35,
+  xmr: 167.20,
+};
+
 const currencies: Currency[] = [{
   id: "btc",
   name: "Bitcoin",
@@ -45,11 +56,35 @@ const currencies: Currency[] = [{
   color: "bg-crypto-gray",
   address: "48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD"
 }];
+
 interface CurrencySelectorProps {
   selectedCurrency: Currency;
   onSelect: (currency: Currency) => void;
   showBalance?: boolean;
 }
+
+const formatFiat = (cryptoAmount: string, currencyId: string): string => {
+  const amount = parseFloat(cryptoAmount) || 0;
+  const rate = exchangeRates[currencyId] || 0;
+  const fiatValue = amount * rate;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(fiatValue);
+};
+
+const formatRate = (currencyId: string): string => {
+  const rate = exchangeRates[currencyId] || 0;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(rate);
+};
+
 export const CurrencySelector = ({
   selectedCurrency,
   onSelect,
@@ -57,6 +92,7 @@ export const CurrencySelector = ({
 }: CurrencySelectorProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [copiedBalance, setCopiedBalance] = useState(false);
+
   const handleCopyBalance = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!showBalance) return;
@@ -68,50 +104,90 @@ export const CurrencySelector = ({
     });
     setTimeout(() => setCopiedBalance(false), 2000);
   };
-  return <div className="relative">
-      
-      
-      <button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between p-3 rounded-lg bg-secondary border border-border hover:border-primary/50 transition-colors">
+
+  return (
+    <div className="relative">
+      <button 
+        onClick={() => setIsOpen(!isOpen)} 
+        className="w-full flex items-center justify-between p-3 rounded-lg bg-secondary border border-border hover:border-primary/50 transition-colors"
+      >
         <div className="flex items-center gap-3">
-          <div className={`w-6 h-6 rounded-full ${selectedCurrency.color} flex items-center justify-center`}>
+          <div className={`w-8 h-8 rounded-full ${selectedCurrency.color} flex items-center justify-center`}>
             <span className="text-xs font-bold text-primary-foreground">
               {selectedCurrency.symbol.charAt(0)}
             </span>
           </div>
-          <span className="font-medium">
-            {selectedCurrency.name} ({selectedCurrency.symbol})
-          </span>
+          <div className="text-left">
+            <span className="font-medium block">
+              {selectedCurrency.name} ({selectedCurrency.symbol})
+            </span>
+            <span className="text-xs text-muted-foreground">
+              1 {selectedCurrency.symbol} = {formatRate(selectedCurrency.id)}
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          {showBalance && <button onClick={handleCopyBalance} className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
-              <span>{selectedCurrency.balance}</span>
-              {copiedBalance ? <Check className="w-3 h-3 text-crypto-green" /> : <Copy className="w-3 h-3 opacity-50" />}
-            </button>}
+          {showBalance && (
+            <button 
+              onClick={handleCopyBalance} 
+              className="flex flex-col items-end text-right"
+            >
+              <div className="flex items-center gap-1 text-foreground">
+                <span className="text-sm font-medium">{selectedCurrency.balance}</span>
+                {copiedBalance ? <Check className="w-3 h-3 text-crypto-green" /> : <Copy className="w-3 h-3 opacity-50" />}
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {formatFiat(selectedCurrency.balance, selectedCurrency.id)}
+              </span>
+            </button>
+          )}
           <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </div>
       </button>
 
-      {isOpen && <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-lg overflow-hidden z-50 shadow-lg">
-          {currencies.map(currency => <button key={currency.id} onClick={() => {
-        onSelect(currency);
-        setIsOpen(false);
-      }} className={`w-full flex items-center justify-between p-3 hover:bg-secondary transition-colors ${selectedCurrency.id === currency.id ? 'bg-secondary text-primary' : ''}`}>
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-lg overflow-hidden z-50 shadow-lg">
+          {currencies.map(currency => (
+            <button 
+              key={currency.id} 
+              onClick={() => {
+                onSelect(currency);
+                setIsOpen(false);
+              }} 
+              className={`w-full flex items-center justify-between p-3 hover:bg-secondary transition-colors ${selectedCurrency.id === currency.id ? 'bg-secondary text-primary' : ''}`}
+            >
               <div className="flex items-center gap-3">
-                <div className={`w-6 h-6 rounded-full ${currency.color} flex items-center justify-center`}>
+                <div className={`w-8 h-8 rounded-full ${currency.color} flex items-center justify-center`}>
                   <span className="text-xs font-bold text-primary-foreground">
                     {currency.symbol.charAt(0)}
                   </span>
                 </div>
-                <span className={`font-medium ${selectedCurrency.id === currency.id ? 'text-primary' : ''}`}>
-                  {currency.name} ({currency.symbol})
-                </span>
+                <div className="text-left">
+                  <span className={`font-medium block ${selectedCurrency.id === currency.id ? 'text-primary' : ''}`}>
+                    {currency.name} ({currency.symbol})
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatRate(currency.id)}
+                  </span>
+                </div>
               </div>
-              {showBalance && <span className={selectedCurrency.id === currency.id ? 'text-primary' : 'text-muted-foreground'}>
-                  {currency.balance}
-                </span>}
-            </button>)}
-        </div>}
-    </div>;
+              {showBalance && (
+                <div className="text-right">
+                  <span className={`text-sm font-medium block ${selectedCurrency.id === currency.id ? 'text-primary' : ''}`}>
+                    {currency.balance}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatFiat(currency.balance, currency.id)}
+                  </span>
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };
-export { currencies };
+
+export { currencies, exchangeRates };
 export type { Currency };
