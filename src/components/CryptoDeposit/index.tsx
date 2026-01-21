@@ -2,17 +2,33 @@ import { useState } from "react";
 import DepositTabs from "./DepositTabs";
 import { CurrencySelector, currencies, type Currency } from "./CurrencySelector";
 import QRCodeDisplay from "./QRCodeDisplay";
+import SendForm from "./SendForm";
 
 interface CryptoDepositProps {
   variant: "wallet" | "payment";
   title?: string;
+  paymentAmount?: string;
 }
 
-const CryptoDeposit = ({ variant, title }: CryptoDepositProps) => {
-  const [activeTab, setActiveTab] = useState("deposit");
+const walletTabs = [
+  { id: "deposit", label: "Deposit" },
+  { id: "send", label: "Send" },
+  { id: "how-to-buy", label: "How to buy crypto" },
+  { id: "tip", label: "Tip" },
+];
+
+const paymentTabs = [
+  { id: "deposit", label: "Pay" },
+  { id: "how-to-buy", label: "How to buy crypto" },
+];
+
+const CryptoDeposit = ({ variant, title, paymentAmount = "0.05" }: CryptoDepositProps) => {
+  const tabs = variant === "wallet" ? walletTabs : paymentTabs;
+  const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies[1]); // ETH default
   
   const showBalance = variant === "wallet";
+  const isPaymentProcessor = variant === "payment";
 
   return (
     <div className="w-full max-w-sm">
@@ -20,7 +36,7 @@ const CryptoDeposit = ({ variant, title }: CryptoDepositProps) => {
         <h2 className="text-lg font-semibold mb-3 text-center">{title}</h2>
       )}
       <div className="gradient-card rounded-xl border border-border overflow-hidden">
-        <DepositTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        <DepositTabs activeTab={activeTab} onTabChange={setActiveTab} tabs={tabs} />
         
         <div className="p-4">
           {activeTab === "deposit" && (
@@ -30,7 +46,22 @@ const CryptoDeposit = ({ variant, title }: CryptoDepositProps) => {
                 onSelect={setSelectedCurrency}
                 showBalance={showBalance}
               />
-              <QRCodeDisplay currency={selectedCurrency} />
+              <QRCodeDisplay 
+                currency={selectedCurrency} 
+                showAmount={isPaymentProcessor}
+                amount={paymentAmount}
+              />
+            </>
+          )}
+
+          {activeTab === "send" && variant === "wallet" && (
+            <>
+              <CurrencySelector
+                selectedCurrency={selectedCurrency}
+                onSelect={setSelectedCurrency}
+                showBalance={showBalance}
+              />
+              <SendForm currency={selectedCurrency} />
             </>
           )}
           
