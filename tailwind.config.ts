@@ -61,6 +61,8 @@ export default {
           blue: "hsl(var(--crypto-blue))",
           teal: "hsl(var(--crypto-teal))",
           pink: "hsl(var(--crypto-pink))",
+          purple: "hsl(var(--crypto-purple))",
+          gray: "hsl(var(--crypto-gray))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

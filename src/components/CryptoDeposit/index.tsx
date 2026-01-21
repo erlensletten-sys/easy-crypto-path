@@ -3,12 +3,22 @@ import DepositTabs from "./DepositTabs";
 import { CurrencySelector, currencies, type Currency } from "./CurrencySelector";
 import QRCodeDisplay from "./QRCodeDisplay";
 
-const CryptoDeposit = () => {
+interface CryptoDepositProps {
+  variant: "wallet" | "payment";
+  title?: string;
+}
+
+const CryptoDeposit = ({ variant, title }: CryptoDepositProps) => {
   const [activeTab, setActiveTab] = useState("deposit");
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies[1]); // ETH default
+  
+  const showBalance = variant === "wallet";
 
   return (
-    <div className="w-full max-w-sm mx-auto">
+    <div className="w-full max-w-sm">
+      {title && (
+        <h2 className="text-lg font-semibold mb-3 text-center">{title}</h2>
+      )}
       <div className="gradient-card rounded-xl border border-border overflow-hidden">
         <DepositTabs activeTab={activeTab} onTabChange={setActiveTab} />
         
@@ -18,8 +28,9 @@ const CryptoDeposit = () => {
               <CurrencySelector
                 selectedCurrency={selectedCurrency}
                 onSelect={setSelectedCurrency}
+                showBalance={showBalance}
               />
-              <QRCodeDisplay />
+              <QRCodeDisplay currency={selectedCurrency} />
             </>
           )}
           

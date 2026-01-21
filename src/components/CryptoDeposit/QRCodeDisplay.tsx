@@ -1,23 +1,71 @@
-const QRCodeDisplay = () => {
+import { useState } from "react";
+import { Copy, Check } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import type { Currency } from "./CurrencySelector";
+
+interface QRCodeDisplayProps {
+  currency: Currency;
+}
+
+const QRCodeDisplay = ({ currency }: QRCodeDisplayProps) => {
+  const [copiedAddress, setCopiedAddress] = useState(false);
+
+  const handleCopyAddress = async () => {
+    await navigator.clipboard.writeText(currency.address);
+    setCopiedAddress(true);
+    toast({
+      title: "Copied!",
+      description: "Address copied to clipboard",
+    });
+    setTimeout(() => setCopiedAddress(false), 2000);
+  };
+
+  // Generate a deterministic pattern based on address
+  const getPattern = (address: string) => {
+    return Array.from({ length: 64 }).map((_, i) => {
+      const charCode = address.charCodeAt(i % address.length) || 0;
+      return (charCode + i) % 3 !== 0;
+    });
+  };
+
+  const pattern = getPattern(currency.address);
+
   return (
     <div className="flex flex-col items-center gap-4 py-6">
-      {/* QR Code placeholder - styled to look like a real QR */}
-      <div className="bg-foreground p-3 rounded-lg">
+      {/* QR Code */}
+      <div 
+        className="bg-foreground p-3 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+        onClick={handleCopyAddress}
+        title="Click to copy address"
+      >
         <div className="w-32 h-32 grid grid-cols-8 gap-0.5">
-          {Array.from({ length: 64 }).map((_, i) => (
+          {pattern.map((filled, i) => (
             <div
               key={i}
-              className={`w-full aspect-square ${
-                Math.random() > 0.4 ? 'bg-background' : 'bg-transparent'
-              }`}
+              className="w-full aspect-square"
               style={{
-                backgroundColor: [0, 1, 2, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 40, 41, 42, 45, 46, 47, 48, 49, 50, 53, 54, 55, 56, 57, 58, 61, 62, 63].includes(i) 
-                  ? 'hsl(230 25% 8%)' 
-                  : i % 3 === 0 ? 'hsl(230 25% 8%)' : 'transparent'
+                backgroundColor: filled ? 'hsl(230 25% 8%)' : 'transparent'
               }}
             />
           ))}
         </div>
+      </div>
+
+      {/* Address with copy button */}
+      <div className="w-full">
+        <button
+          onClick={handleCopyAddress}
+          className="w-full flex items-center justify-between gap-2 p-3 rounded-lg bg-secondary border border-border hover:border-primary/50 transition-colors text-left"
+        >
+          <span className="text-xs text-muted-foreground truncate flex-1 font-mono">
+            {currency.address}
+          </span>
+          {copiedAddress ? (
+            <Check className="w-4 h-4 text-crypto-green flex-shrink-0" />
+          ) : (
+            <Copy className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          )}
+        </button>
       </div>
       
       <button className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
