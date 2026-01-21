@@ -80,7 +80,7 @@ const QRCodeDisplay = ({
               {copiedAmount ? <Check className="w-4 h-4 text-crypto-green flex-shrink-0" /> : <Copy className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
             </div>
             {/* FIAT amount with gradient - inside copy box */}
-            <span className="text-xs font-medium bg-gradient-to-r from-muted-foreground to-muted-foreground/50 bg-clip-text text-transparent">
+            <span className="text-xs font-medium bg-gradient-to-r from-muted-foreground to-muted-foreground/50 bg-clip-text text-transparent text-right">
               ≈ ${fiatAmount} {fiatCurrency}
             </span>
           </button>
