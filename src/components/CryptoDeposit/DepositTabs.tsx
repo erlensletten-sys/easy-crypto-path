@@ -1,3 +1,5 @@
+import { HelpCircle } from 'lucide-react';
+
 interface Tab {
   id: string;
   label: string;
@@ -33,8 +35,9 @@ const DepositTabs = ({ activeTab, onTabChange, tabs }: DepositTabsProps) => {
         </button>
       ))}
       <button
-        className="px-4 py-3 text-sm font-medium transition-colors text-muted-foreground hover:text-foreground ml-auto"
+        className="px-4 py-3 text-sm font-medium transition-colors text-muted-foreground hover:text-foreground ml-auto flex items-center gap-1.5"
       >
+        <HelpCircle size={16} />
         Support
       </button>
     </div>
