@@ -8,6 +8,8 @@ interface CryptoDepositProps {
   variant: "wallet" | "payment";
   title?: string;
   paymentAmount?: string;
+  fiatAmount?: string;
+  fiatCurrency?: string;
 }
 
 const walletTabs = [
@@ -22,7 +24,7 @@ const paymentTabs = [
   { id: "how-to-buy", label: "How to buy crypto" },
 ];
 
-const CryptoDeposit = ({ variant, title, paymentAmount = "0.05" }: CryptoDepositProps) => {
+const CryptoDeposit = ({ variant, title, paymentAmount = "0.05", fiatAmount = "150.00", fiatCurrency = "USD" }: CryptoDepositProps) => {
   const tabs = variant === "wallet" ? walletTabs : paymentTabs;
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies[1]); // ETH default
@@ -50,6 +52,8 @@ const CryptoDeposit = ({ variant, title, paymentAmount = "0.05" }: CryptoDeposit
                 currency={selectedCurrency} 
                 showAmount={isPaymentProcessor}
                 amount={paymentAmount}
+                fiatAmount={fiatAmount}
+                fiatCurrency={fiatCurrency}
               />
             </>
           )}
