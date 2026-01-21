@@ -1,10 +1,11 @@
-import { HelpCircle, ShoppingCart, History } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 
 interface Tab {
   id: string;
   label: string;
   icon?: React.ReactNode;
   highlight?: boolean;
+  externalLinks?: boolean;
 }
 
 interface DepositTabsProps {
@@ -12,21 +13,30 @@ interface DepositTabsProps {
   onTabChange: (tabId: string) => void;
   tabs: Tab[];
   onSupportClick?: () => void;
+  onExternalLinksClick?: () => void;
 }
 
-const DepositTabs = ({ activeTab, onTabChange, tabs, onSupportClick }: DepositTabsProps) => {
+const DepositTabs = ({ activeTab, onTabChange, tabs, onSupportClick, onExternalLinksClick }: DepositTabsProps) => {
   const isSingleTab = tabs.length === 1;
+  
+  const handleTabClick = (tab: Tab) => {
+    if (tab.externalLinks && onExternalLinksClick) {
+      onExternalLinksClick();
+    } else {
+      onTabChange(tab.id);
+    }
+  };
   
   return (
     <div className={`flex border-b border-border ${isSingleTab ? 'justify-center' : ''}`}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
-          onClick={() => onTabChange(tab.id)}
+          onClick={() => handleTabClick(tab)}
           className={`px-4 py-3 text-sm font-medium transition-colors relative flex items-center justify-center gap-2 ${
             isSingleTab ? '' : 'flex-1 text-center'
           } ${
-            activeTab === tab.id
+            activeTab === tab.id && !tab.externalLinks
               ? tab.highlight 
                 ? 'text-primary font-semibold'
                 : 'text-foreground'
@@ -35,7 +45,7 @@ const DepositTabs = ({ activeTab, onTabChange, tabs, onSupportClick }: DepositTa
         >
           {tab.icon}
           {tab.label}
-          {activeTab === tab.id && (
+          {activeTab === tab.id && !tab.externalLinks && (
             <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${tab.highlight ? 'bg-primary' : 'bg-primary'}`} />
           )}
         </button>
