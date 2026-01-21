@@ -24,22 +24,26 @@ const paymentTabs = [
   { id: "how-to-buy", label: "How to buy crypto" },
 ];
 
-const CryptoDeposit = ({ variant, title, paymentAmount = "0.05", fiatAmount = "150.00", fiatCurrency = "USD" }: CryptoDepositProps) => {
+const CryptoDeposit = ({
+  variant,
+  title,
+  paymentAmount = "0.05",
+  fiatAmount = "150.00",
+  fiatCurrency = "USD",
+}: CryptoDepositProps) => {
   const tabs = variant === "wallet" ? walletTabs : paymentTabs;
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies[1]); // ETH default
-  
+
   const showBalance = variant === "wallet";
   const isPaymentProcessor = variant === "payment";
 
   return (
     <div className="w-full max-w-sm">
-      {title && (
-        <h2 className="text-lg font-semibold mb-3 text-center">{title}</h2>
-      )}
+      {title && <h2 className="text-lg font-semibold mb-3 text-center">{title}</h2>}
       <div className="gradient-card rounded-xl border border-border overflow-hidden">
         <DepositTabs activeTab={activeTab} onTabChange={setActiveTab} tabs={tabs} />
-        
+
         <div className="p-4">
           {activeTab === "deposit" && (
             <>
@@ -48,8 +52,8 @@ const CryptoDeposit = ({ variant, title, paymentAmount = "0.05", fiatAmount = "1
                 onSelect={setSelectedCurrency}
                 showBalance={showBalance}
               />
-              <QRCodeDisplay 
-                currency={selectedCurrency} 
+              <QRCodeDisplay
+                currency={selectedCurrency}
                 showAmount={isPaymentProcessor}
                 amount={paymentAmount}
                 fiatAmount={fiatAmount}
@@ -68,22 +72,57 @@ const CryptoDeposit = ({ variant, title, paymentAmount = "0.05", fiatAmount = "1
               <SendForm currency={selectedCurrency} />
             </>
           )}
-          
+
           {activeTab === "how-to-buy" && (
-            <div className="py-8 text-center">
-              <h3 className="text-lg font-semibold mb-2">How to buy crypto</h3>
-              <p className="text-muted-foreground text-sm">
-                Learn how to purchase cryptocurrency using various payment methods.
-              </p>
+            <div className="space-y-5 text-sm">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-1">How to buy crypto</h3>
+                <p className="text-muted-foreground">Purchase cryptocurrency using trusted payment providers.</p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="font-medium mb-1">1. Choose a provider</p>
+                  <p className="text-muted-foreground">
+                    Use a secure third-party service to buy crypto with card or bank transfer.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+                  <p className="font-medium">Recommended providers</p>
+                  <ul className="space-y-1 text-muted-foreground">
+                    <li>• Swapped — fast and simple purchases</li>
+                    <li>• MoonPay — cards and bank transfers</li>
+                    <li>• Transak — supports local currencies</li>
+                    <li>• Ramp — beginner friendly</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <p className="font-medium mb-1">2. Complete payment</p>
+                  <p className="text-muted-foreground">
+                    Follow the provider’s instructions to complete your payment securely.
+                  </p>
+                </div>
+
+                <div>
+                  <p className="font-medium mb-1">3. Receive your crypto</p>
+                  <p className="text-muted-foreground">
+                    Your crypto will be delivered directly to your wallet once confirmed.
+                  </p>
+                </div>
+
+                <p className="text-xs text-muted-foreground text-center pt-2">
+                  Availability, fees, and verification may vary by provider and region.
+                </p>
+              </div>
             </div>
           )}
-          
+
           {activeTab === "tip" && (
             <div className="py-8 text-center">
               <h3 className="text-lg font-semibold mb-2">Send a Tip</h3>
-              <p className="text-muted-foreground text-sm">
-                Send crypto tips to your favorite creators.
-              </p>
+              <p className="text-muted-foreground text-sm">Send crypto tips to your favorite creators.</p>
             </div>
           )}
         </div>
