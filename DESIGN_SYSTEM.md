@@ -97,6 +97,17 @@
 
 ---
 
-## Dark Theme Note
+## Theme Support
 
-This design system is built as a **dark-first** theme. The `:root` and `.dark` selectors share the same values, providing a consistent dark experience throughout the application.
+This design system supports **both light and dark modes**:
+
+- **Light Mode** (`:root`): Clean, professional appearance with high contrast for readability
+- **Dark Mode** (`.dark`): Rich, immersive dark theme for reduced eye strain
+
+The purple brand identity (`--primary: 265 80%`) is consistent across both themes, with adjusted lightness values for optimal contrast.
+
+### Theme Toggle
+Use the `<ThemeToggle />` component to switch between themes. It supports:
+- Light mode
+- Dark mode  
+- System preference
