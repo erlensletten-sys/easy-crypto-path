@@ -1,8 +1,10 @@
 import { useState } from "react";
-import DepositTabs from "./DepositTabs";
+import { ShoppingCart, History } from "lucide-react";
+import DepositTabs, { type Tab } from "./DepositTabs";
 import { CurrencySelector, currencies, type Currency } from "./CurrencySelector";
 import QRCodeDisplay from "./QRCodeDisplay";
 import SendForm from "./SendForm";
+import SupportModal from "./SupportModal";
 
 interface CryptoDepositProps {
   variant: "wallet" | "payment";
@@ -12,13 +14,14 @@ interface CryptoDepositProps {
   fiatCurrency?: string;
 }
 
-const walletTabs = [
+const walletTabs: Tab[] = [
   { id: "deposit", label: "Deposit" },
   { id: "send", label: "Withdraw" },
 ];
 
-const paymentTabs = [
-  { id: "deposit", label: "Purchase" },
+const paymentTabs: Tab[] = [
+  { id: "deposit", label: "Purchase", icon: <ShoppingCart size={16} />, highlight: true },
+  { id: "history", label: "History", icon: <History size={16} /> },
 ];
 
 const CryptoDeposit = ({
@@ -31,6 +34,7 @@ const CryptoDeposit = ({
   const tabs = variant === "wallet" ? walletTabs : paymentTabs;
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies[1]); // ETH default
+  const [supportOpen, setSupportOpen] = useState(false);
 
   const showBalance = variant === "wallet";
   const isPaymentProcessor = variant === "payment";
@@ -39,7 +43,12 @@ const CryptoDeposit = ({
     <div className="w-full max-w-sm">
       {title && <h2 className="text-lg font-semibold mb-3 text-center">{title}</h2>}
       <div className="gradient-card rounded-xl border border-border overflow-hidden">
-        <DepositTabs activeTab={activeTab} onTabChange={setActiveTab} tabs={tabs} />
+        <DepositTabs 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+          tabs={tabs}
+          onSupportClick={() => setSupportOpen(true)}
+        />
 
         <div className="p-4">
           {activeTab === "deposit" && (
@@ -70,6 +79,13 @@ const CryptoDeposit = ({
             </>
           )}
 
+          {activeTab === "history" && variant === "payment" && (
+            <div className="py-8 text-center">
+              <History size={32} className="mx-auto text-muted-foreground mb-3" />
+              <p className="text-sm text-muted-foreground">No transactions yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Your purchase history will appear here</p>
+            </div>
+          )}
         </div>
 
         {/* How to buy crypto - discrete link at bottom */}
@@ -131,6 +147,8 @@ const CryptoDeposit = ({
           </div>
         )}
       </div>
+      
+      <SupportModal open={supportOpen} onOpenChange={setSupportOpen} />
     </div>
   );
 };
