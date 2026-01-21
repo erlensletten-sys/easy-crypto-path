@@ -50,7 +50,7 @@ const CryptoDeposit = ({
 }: CryptoDepositProps) => {
   const tabs = walletTabs;
   const [activeTab, setActiveTab] = useState(tabs[0].id);
-  const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies[1]);
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies[0]);
   const [showSupport, setShowSupport] = useState(false);
   const [showBuyCryptoLinks, setShowBuyCryptoLinks] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -113,8 +113,11 @@ const CryptoDeposit = ({
                       href="https://swapped.com" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
                     >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-bold text-white">S</span>
+                      </div>
                       <div>
                         <p className="font-medium text-sm">Swapped</p>
                         <p className="text-xs text-muted-foreground">Fast and simple</p>
@@ -124,8 +127,13 @@ const CryptoDeposit = ({
                       href="https://moonpay.com" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
                     >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+                        </svg>
+                      </div>
                       <div>
                         <p className="font-medium text-sm">MoonPay</p>
                         <p className="text-xs text-muted-foreground">Cards & bank transfers</p>
@@ -135,8 +143,11 @@ const CryptoDeposit = ({
                       href="https://transak.com" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
                     >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-bold text-white">T</span>
+                      </div>
                       <div>
                         <p className="font-medium text-sm">Transak</p>
                         <p className="text-xs text-muted-foreground">Local payment methods</p>
@@ -146,8 +157,11 @@ const CryptoDeposit = ({
                       href="https://ramp.network" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
                     >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-bold text-white">R</span>
+                      </div>
                       <div>
                         <p className="font-medium text-sm">Ramp Network</p>
                         <p className="text-xs text-muted-foreground">Beginner friendly</p>
