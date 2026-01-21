@@ -5,6 +5,7 @@ import { CurrencySelector, currencies, type Currency } from "./CurrencySelector"
 import QRCodeDisplay from "./QRCodeDisplay";
 import SendForm from "./SendForm";
 import SupportModal from "./SupportModal";
+import ConfirmPaymentButton from "./ConfirmPaymentButton";
 
 interface CryptoDepositProps {
   variant: "wallet" | "payment";
@@ -65,6 +66,18 @@ const CryptoDeposit = ({
                 fiatAmount={fiatAmount}
                 fiatCurrency={fiatCurrency}
               />
+              
+              {isPaymentProcessor && (
+                <div className="mt-4">
+                  <ConfirmPaymentButton 
+                    cryptoId={selectedCurrency.id}
+                    onConfirmed={() => {
+                      // TODO: Handle successful confirmation
+                      console.log('Payment confirmed!');
+                    }}
+                  />
+                </div>
+              )}
             </>
           )}
 
