@@ -96,7 +96,7 @@ const QRCodeDisplay = ({
       {/* Amount to pay (for payment processor) - now below address */}
       {showAmount && (
         <div className="w-full">
-          <label className="block text-sm text-muted-foreground mb-2">Amount to Pay</label>
+          <label className="block text-sm text-muted-foreground mb-2 text-center">Amount to Pay</label>
           {/* FIAT amount display */}
           <div className="text-center mb-2">
             <span className="text-2xl font-bold">${fiatAmount}</span>
