@@ -1,4 +1,4 @@
-import { HelpCircle } from 'lucide-react';
+
 
 interface Tab {
   id: string;
@@ -12,11 +12,10 @@ interface DepositTabsProps {
   activeTab: string;
   onTabChange: (tabId: string) => void;
   tabs: Tab[];
-  onSupportClick?: () => void;
   onExternalLinksClick?: () => void;
 }
 
-const DepositTabs = ({ activeTab, onTabChange, tabs, onSupportClick, onExternalLinksClick }: DepositTabsProps) => {
+const DepositTabs = ({ activeTab, onTabChange, tabs, onExternalLinksClick }: DepositTabsProps) => {
   const isSingleTab = tabs.length === 1;
   
   const handleTabClick = (tab: Tab) => {
@@ -42,9 +41,6 @@ const DepositTabs = ({ activeTab, onTabChange, tabs, onSupportClick, onExternalL
                 : 'text-muted-foreground hover:text-foreground hover:scale-[1.01]'
             }`}
           >
-            <span className={`transition-transform duration-200 ${activeTab === tab.id && !tab.externalLinks ? 'scale-110' : ''}`}>
-              {tab.icon}
-            </span>
             {tab.label}
             <div 
               className={`absolute bottom-0 left-0 right-0 h-0.5 bg-primary transition-all duration-200 ease-out origin-center ${
@@ -56,13 +52,6 @@ const DepositTabs = ({ activeTab, onTabChange, tabs, onSupportClick, onExternalL
           </button>
         ))}
       </div>
-      <button
-        onClick={onSupportClick}
-        className="px-4 py-3 text-sm font-medium transition-all duration-200 text-muted-foreground hover:text-foreground flex items-center gap-1.5 hover:scale-[1.02]"
-      >
-        <HelpCircle size={16} />
-        Support
-      </button>
     </div>
   );
 };
