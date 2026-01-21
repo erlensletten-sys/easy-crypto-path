@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ShoppingCart, History } from "lucide-react";
+import { ShoppingCart, ExternalLink } from "lucide-react";
 import DepositTabs, { type Tab } from "./DepositTabs";
 import { CurrencySelector, currencies, type Currency } from "./CurrencySelector";
 import QRCodeDisplay from "./QRCodeDisplay";
@@ -21,8 +21,8 @@ const walletTabs: Tab[] = [
 ];
 
 const paymentTabs: Tab[] = [
-  { id: "deposit", label: "Purchase", icon: <ShoppingCart size={16} />, highlight: true },
-  { id: "history", label: "History", icon: <History size={16} /> },
+  { id: "deposit", label: "Buy now", icon: <ShoppingCart size={16} />, highlight: true },
+  { id: "buy-crypto", label: "Buy Crypto", icon: <ExternalLink size={16} />, externalLinks: true },
 ];
 
 const CryptoDeposit = ({
@@ -37,8 +37,14 @@ const CryptoDeposit = ({
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies[1]); // ETH default
   const [supportOpen, setSupportOpen] = useState(false);
 
+  const [showBuyCryptoLinks, setShowBuyCryptoLinks] = useState(false);
+
   const showBalance = variant === "wallet";
   const isPaymentProcessor = variant === "payment";
+
+  const handleExternalLinksClick = () => {
+    setShowBuyCryptoLinks(!showBuyCryptoLinks);
+  };
 
   return (
     <div className="w-full max-w-sm">
@@ -46,58 +52,93 @@ const CryptoDeposit = ({
       <div className="gradient-card rounded-xl border border-border overflow-hidden">
         <DepositTabs 
           activeTab={activeTab} 
-          onTabChange={setActiveTab} 
+          onTabChange={(tabId) => {
+            setActiveTab(tabId);
+            setShowBuyCryptoLinks(false);
+          }} 
           tabs={tabs}
           onSupportClick={() => setSupportOpen(true)}
+          onExternalLinksClick={handleExternalLinksClick}
         />
 
         <div className="p-4">
-          {activeTab === "deposit" && (
+          {showBuyCryptoLinks && variant === "payment" ? (
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-muted-foreground text-sm mb-4">Purchase cryptocurrency using trusted payment providers</p>
+              </div>
+              <div className="space-y-2">
+                <a 
+                  href="https://swapped.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
+                >
+                  <div>
+                    <p className="font-medium text-sm">Swapped</p>
+                    <p className="text-xs text-muted-foreground">Fast and simple</p>
+                  </div>
+                  <ExternalLink size={16} className="text-muted-foreground" />
+                </a>
+                <a 
+                  href="https://moonpay.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
+                >
+                  <div>
+                    <p className="font-medium text-sm">MoonPay</p>
+                    <p className="text-xs text-muted-foreground">Cards & bank transfers</p>
+                  </div>
+                  <ExternalLink size={16} className="text-muted-foreground" />
+                </a>
+              </div>
+              <p className="text-[10px] text-muted-foreground text-center">
+                Availability, fees, and verification may vary by provider and region.
+              </p>
+            </div>
+          ) : (
             <>
-              <CurrencySelector
-                selectedCurrency={selectedCurrency}
-                onSelect={setSelectedCurrency}
-                showBalance={showBalance}
-              />
-              <QRCodeDisplay
-                currency={selectedCurrency}
-                showAmount={isPaymentProcessor}
-                amount={paymentAmount}
-                fiatAmount={fiatAmount}
-                fiatCurrency={fiatCurrency}
-              />
-              
-              {isPaymentProcessor && (
-                <div className="mt-4">
-                  <ConfirmPaymentButton 
-                    cryptoId={selectedCurrency.id}
-                    onConfirmed={() => {
-                      // TODO: Handle successful confirmation
-                      console.log('Payment confirmed!');
-                    }}
+              {activeTab === "deposit" && (
+                <>
+                  <CurrencySelector
+                    selectedCurrency={selectedCurrency}
+                    onSelect={setSelectedCurrency}
+                    showBalance={showBalance}
                   />
-                </div>
+                  <QRCodeDisplay
+                    currency={selectedCurrency}
+                    showAmount={isPaymentProcessor}
+                    amount={paymentAmount}
+                    fiatAmount={fiatAmount}
+                    fiatCurrency={fiatCurrency}
+                  />
+                  
+                  {isPaymentProcessor && (
+                    <div className="mt-4">
+                      <ConfirmPaymentButton 
+                        cryptoId={selectedCurrency.id}
+                        onConfirmed={() => {
+                          // TODO: Handle successful confirmation
+                          console.log('Payment confirmed!');
+                        }}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+
+              {activeTab === "send" && variant === "wallet" && (
+                <>
+                  <CurrencySelector
+                    selectedCurrency={selectedCurrency}
+                    onSelect={setSelectedCurrency}
+                    showBalance={showBalance}
+                  />
+                  <SendForm currency={selectedCurrency} />
+                </>
               )}
             </>
-          )}
-
-          {activeTab === "send" && variant === "wallet" && (
-            <>
-              <CurrencySelector
-                selectedCurrency={selectedCurrency}
-                onSelect={setSelectedCurrency}
-                showBalance={showBalance}
-              />
-              <SendForm currency={selectedCurrency} />
-            </>
-          )}
-
-          {activeTab === "history" && variant === "payment" && (
-            <div className="py-8 text-center">
-              <History size={32} className="mx-auto text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">No transactions yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Your purchase history will appear here</p>
-            </div>
           )}
         </div>
 
