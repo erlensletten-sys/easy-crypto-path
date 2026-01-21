@@ -4,7 +4,7 @@ import DepositTabs, { type Tab } from "./DepositTabs";
 import { CurrencySelector, currencies, type Currency } from "./CurrencySelector";
 import QRCodeDisplay from "./QRCodeDisplay";
 import SendForm from "./SendForm";
-import SupportModal from "./SupportModal";
+import SupportContent from "./SupportContent";
 import ConfirmPaymentButton from "./ConfirmPaymentButton";
 
 interface CryptoDepositProps {
@@ -35,8 +35,7 @@ const CryptoDeposit = ({
   const tabs = variant === "wallet" ? walletTabs : paymentTabs;
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies[1]); // ETH default
-  const [supportOpen, setSupportOpen] = useState(false);
-
+  const [showSupport, setShowSupport] = useState(false);
   const [showBuyCryptoLinks, setShowBuyCryptoLinks] = useState(false);
 
   const showBalance = variant === "wallet";
@@ -44,6 +43,12 @@ const CryptoDeposit = ({
 
   const handleExternalLinksClick = () => {
     setShowBuyCryptoLinks(!showBuyCryptoLinks);
+    setShowSupport(false);
+  };
+
+  const handleSupportClick = () => {
+    setShowSupport(!showSupport);
+    setShowBuyCryptoLinks(false);
   };
 
   return (
@@ -55,14 +60,17 @@ const CryptoDeposit = ({
           onTabChange={(tabId) => {
             setActiveTab(tabId);
             setShowBuyCryptoLinks(false);
+            setShowSupport(false);
           }} 
           tabs={tabs}
-          onSupportClick={() => setSupportOpen(true)}
+          onSupportClick={handleSupportClick}
           onExternalLinksClick={handleExternalLinksClick}
         />
 
         <div className="p-4">
-          {showBuyCryptoLinks && variant === "payment" ? (
+          {showSupport ? (
+            <SupportContent onClose={() => setShowSupport(false)} />
+          ) : showBuyCryptoLinks && variant === "payment" ? (
             <div className="space-y-4">
               <div className="text-center">
                 <p className="text-muted-foreground text-sm mb-4">Purchase cryptocurrency using trusted payment providers</p>
@@ -201,8 +209,6 @@ const CryptoDeposit = ({
           </div>
         )}
       </div>
-      
-      <SupportModal open={supportOpen} onOpenChange={setSupportOpen} />
     </div>
   );
 };
