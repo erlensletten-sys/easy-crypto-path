@@ -35,6 +35,7 @@ Deno.serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    const userId = claimsData.claims.sub;
 
     const url = new URL(req.url);
     const paymentId = url.searchParams.get("paymentId");
@@ -43,6 +44,27 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Missing paymentId parameter" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify user owns the order with this payment_id
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .select("user_id")
+      .eq("payment_id", paymentId)
+      .single();
+
+    if (orderError || !order) {
+      return new Response(
+        JSON.stringify({ error: "Order not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (order.user_id !== userId) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized to access this order" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
