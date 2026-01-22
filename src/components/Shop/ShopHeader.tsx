@@ -36,7 +36,10 @@ export function ShopHeader({
       <div className="container flex h-16 items-center justify-between">
         <Link to="/shop" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <Store className="h-6 w-6 text-primary" />
-          <span className="font-bold text-xl">CryptoShop</span>
+          <div className="flex flex-col leading-tight">
+            <span className="font-bold text-lg">NoToGreed Group</span>
+            <span className="text-xs text-muted-foreground">A Premium Goods at Premium Prices</span>
+          </div>
         </Link>
 
         <div className="flex items-center gap-3">
