@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Plus, Pencil, Trash2, Package } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ProductImageUpload } from './ProductImageUpload';
 
 export function AdminProducts() {
   const { products, loading } = useProducts();
@@ -163,10 +164,9 @@ export function AdminProducts() {
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               />
-              <Input
-                placeholder="Image URL"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+              <ProductImageUpload
+                imageUrl={formData.image_url}
+                onImageChange={(url) => setFormData({ ...formData, image_url: url })}
               />
               <Button
                 className="w-full"
@@ -276,12 +276,9 @@ export function AdminProducts() {
                               setFormData({ ...formData, category: e.target.value })
                             }
                           />
-                          <Input
-                            placeholder="Image URL"
-                            value={formData.image_url}
-                            onChange={(e) =>
-                              setFormData({ ...formData, image_url: e.target.value })
-                            }
+                          <ProductImageUpload
+                            imageUrl={formData.image_url}
+                            onImageChange={(url) => setFormData({ ...formData, image_url: url })}
                           />
                           <Button
                             className="w-full"
