@@ -9,8 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, CheckCircle, Loader2, Copy, Check } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Loader2, Copy, Check, ChevronDown, HelpCircle } from 'lucide-react';
 import { z } from 'zod';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -24,6 +26,31 @@ const CRYPTO_OPTIONS = [
   { id: 'usdt', name: 'Tether', symbol: 'USDT', color: 'bg-green-500' },
   { id: 'ltc', name: 'Litecoin', symbol: 'LTC', color: 'bg-gray-400' },
   { id: 'xmr', name: 'Monero', symbol: 'XMR', color: 'bg-orange-600' },
+];
+
+const BUY_CRYPTO_LINKS = [
+  {
+    name: 'Swapped',
+    url: 'https://swapped.com',
+    description: 'Fast and simple',
+    gradient: 'from-violet-500 to-purple-600',
+    icon: 'S',
+  },
+  {
+    name: 'MoonPay',
+    url: 'https://moonpay.com',
+    description: 'Cards & bank transfers',
+    gradient: 'from-purple-600 to-indigo-700',
+    icon: null,
+    isMoon: true,
+  },
+  {
+    name: 'Ramp Network',
+    url: 'https://ramp.network',
+    description: 'Beginner friendly',
+    gradient: 'from-emerald-500 to-teal-600',
+    icon: 'R',
+  },
 ];
 
 interface PaymentDetails {
@@ -43,6 +70,9 @@ export default function Checkout() {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(false);
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('deposit');
+  const [step, setStep] = useState<'shipping' | 'payment'>('shipping');
   
   const { user } = useAuth();
   const { cartItems, cartTotal, clearCart } = useCart();
@@ -63,15 +93,6 @@ export default function Checkout() {
     const checkStatus = async () => {
       setCheckingStatus(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-
-        const response = await supabase.functions.invoke('check-payment-status', {
-          body: null,
-          headers: {},
-        });
-
-        // Use query params approach
         const { data, error } = await supabase.functions.invoke(
           `check-payment-status?paymentId=${paymentDetails.payment_id}`,
           { method: 'GET' }
@@ -95,7 +116,7 @@ export default function Checkout() {
       setCheckingStatus(false);
     };
 
-    const interval = setInterval(checkStatus, 15000); // Check every 15 seconds
+    const interval = setInterval(checkStatus, 15000);
     return () => clearInterval(interval);
   }, [paymentDetails?.payment_id, clearCart, toast]);
 
@@ -107,7 +128,6 @@ export default function Checkout() {
     toast({ title: 'Address copied!' });
   };
 
-  // Early return for empty cart (after hooks)
   if (!user) {
     return null;
   }
@@ -123,7 +143,7 @@ export default function Checkout() {
     );
   }
 
-  const handleCheckout = async () => {
+  const handleContinueToPayment = () => {
     const validation = checkoutSchema.safeParse({ address });
     if (!validation.success) {
       toast({
@@ -133,7 +153,10 @@ export default function Checkout() {
       });
       return;
     }
+    setStep('payment');
+  };
 
+  const handleCreatePayment = async () => {
     setLoading(true);
 
     try {
@@ -230,146 +253,239 @@ export default function Checkout() {
     );
   }
 
-  // Payment pending - show QR and address
-  if (paymentDetails) {
-    const statusColors: Record<string, string> = {
-      waiting: 'bg-yellow-500',
-      confirming: 'bg-blue-500',
-      confirmed: 'bg-green-500',
-      sending: 'bg-blue-500',
-      finished: 'bg-green-500',
-      failed: 'bg-destructive',
-      expired: 'bg-muted',
-    };
+  // Wallet-style payment UI
+  const WalletPaymentCard = () => (
+    <div className="w-full max-w-sm mx-auto">
+      <h2 className="text-lg font-semibold mb-3 text-center">Pay ${cartTotal.toFixed(2)}</h2>
+      <div className="gradient-card rounded-xl border border-border overflow-hidden bg-card">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full grid grid-cols-3 bg-transparent border-b border-border rounded-none h-12">
+            <TabsTrigger
+              value="deposit"
+              className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+            >
+              Deposit
+            </TabsTrigger>
+            <TabsTrigger
+              value="withdraw"
+              disabled
+              className="text-muted-foreground/50 rounded-none"
+            >
+              Withdraw
+            </TabsTrigger>
+            <TabsTrigger
+              value="buy-crypto"
+              className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+            >
+              Buy Crypto
+            </TabsTrigger>
+          </TabsList>
 
-    return (
-      <div className="min-h-screen bg-background">
-        <header className="border-b border-border/50 bg-background/95 backdrop-blur">
-          <div className="container flex h-16 items-center">
-            <Button variant="ghost" onClick={() => navigate('/shop')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Shop
-            </Button>
-          </div>
-        </header>
+          <div className="p-4 min-h-[320px]">
+            <TabsContent value="deposit" className="mt-0 space-y-4">
+              {/* Currency Selector */}
+              <Popover open={currencyOpen} onOpenChange={setCurrencyOpen}>
+                <PopoverTrigger asChild>
+                  <button className="w-full flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div className={`w-8 h-8 rounded-full ${selectedCrypto.color} flex items-center justify-center flex-shrink-0`}>
+                      <span className="text-xs font-bold text-white">{selectedCrypto.symbol[0]}</span>
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="font-medium text-sm">{selectedCrypto.name} ({selectedCrypto.symbol})</p>
+                    </div>
+                    {paymentDetails && (
+                      <span className="text-sm text-muted-foreground font-mono">
+                        {paymentDetails.pay_amount.toFixed(8)}
+                      </span>
+                    )}
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[280px] p-2" align="start">
+                  {CRYPTO_OPTIONS.map((crypto) => (
+                    <button
+                      key={crypto.id}
+                      className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors"
+                      onClick={() => {
+                        setSelectedCrypto(crypto);
+                        setCurrencyOpen(false);
+                      }}
+                    >
+                      <div className={`w-8 h-8 rounded-full ${crypto.color} flex items-center justify-center`}>
+                        <span className="text-xs font-bold text-white">{crypto.symbol[0]}</span>
+                      </div>
+                      <div className="text-left">
+                        <p className="font-medium text-sm">{crypto.name}</p>
+                        <p className="text-xs text-muted-foreground">{crypto.symbol}</p>
+                      </div>
+                    </button>
+                  ))}
+                </PopoverContent>
+              </Popover>
 
-        <main className="container py-8 flex justify-center">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
-              <CardTitle>Complete Your Payment</CardTitle>
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <span className={`w-2 h-2 rounded-full ${statusColors[paymentDetails.payment_status] || 'bg-muted'}`} />
-                <span className="text-sm text-muted-foreground capitalize">
-                  {paymentDetails.payment_status.replace('_', ' ')}
-                </span>
-                {checkingStatus && <Loader2 className="h-3 w-3 animate-spin" />}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">Send exactly</p>
-                <p className="text-2xl font-bold">
-                  {paymentDetails.pay_amount} {paymentDetails.pay_currency.toUpperCase()}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  ≈ ${cartTotal.toFixed(2)} USD
-                </p>
-              </div>
+              {paymentDetails ? (
+                <>
+                  {/* QR Code */}
+                  <div className="flex justify-center py-2">
+                    <div className="bg-white p-3 rounded-lg">
+                      <QRCodeSVG
+                        value={paymentDetails.pay_address}
+                        size={160}
+                        level="H"
+                      />
+                    </div>
+                  </div>
 
-              <div className="flex justify-center">
-                <div className="bg-white p-4 rounded-lg">
-                  <QRCodeSVG
-                    value={paymentDetails.pay_address}
-                    size={180}
-                    level="H"
-                  />
-                </div>
-              </div>
+                  {/* Address */}
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Send to Address</p>
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30 border border-border">
+                      <span className="flex-1 text-xs font-mono truncate">
+                        {paymentDetails.pay_address}
+                      </span>
+                      <button
+                        onClick={handleCopyAddress}
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Payment Address</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={paymentDetails.pay_address}
-                    readOnly
-                    className="font-mono text-xs"
-                  />
+                  {/* Status */}
+                  <div className="text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                    {checkingStatus && <Loader2 className="h-3 w-3 animate-spin" />}
+                    <span className="capitalize">{paymentDetails.payment_status.replace('_', ' ')}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                  <p className="text-sm text-muted-foreground text-center">
+                    Click below to generate a {selectedCrypto.symbol} payment address
+                  </p>
                   <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleCopyAddress}
+                    onClick={handleCreatePayment}
+                    disabled={loading}
+                    className="w-full"
                   >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Creating Payment...
+                      </>
+                    ) : (
+                      `Generate ${selectedCrypto.symbol} Address`
+                    )}
                   </Button>
                 </div>
-              </div>
+              )}
+            </TabsContent>
 
-              <div className="bg-muted/50 rounded-lg p-4 text-center">
-                <p className="text-xs text-muted-foreground">
-                  Waiting for payment... This page will update automatically once your payment is detected.
+            <TabsContent value="buy-crypto" className="mt-0 space-y-4">
+              <div className="text-center">
+                <p className="text-muted-foreground text-sm mb-4">
+                  Purchase cryptocurrency using trusted payment providers
                 </p>
               </div>
+              <div className="space-y-2">
+                {BUY_CRYPTO_LINKS.map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${link.gradient} flex items-center justify-center flex-shrink-0`}>
+                      {link.isMoon ? (
+                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />
+                        </svg>
+                      ) : (
+                        <span className="text-xs font-bold text-white">{link.icon}</span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{link.name}</p>
+                      <p className="text-xs text-muted-foreground">{link.description}</p>
+                    </div>
+                  </a>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground text-center">
+                Availability, fees, and verification may vary by provider and region.
+              </p>
+            </TabsContent>
+          </div>
+        </Tabs>
 
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => navigate('/orders')}
-              >
-                View Order Status
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
+        {/* Support link */}
+        <button
+          className="w-full py-3 text-xs text-muted-foreground hover:text-foreground transition-colors border-t border-border flex items-center justify-center gap-1.5"
+        >
+          <HelpCircle className="w-3.5 h-3.5" />
+          Support
+        </button>
       </div>
-    );
-  }
+
+      {paymentDetails && (
+        <Button
+          variant="outline"
+          className="w-full mt-4"
+          onClick={() => navigate('/orders')}
+        >
+          View Order Status
+        </Button>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/50 bg-background/95 backdrop-blur">
         <div className="container flex h-16 items-center">
-          <Button variant="ghost" onClick={() => navigate('/shop')}>
+          <Button variant="ghost" onClick={() => step === 'payment' ? setStep('shipping') : navigate('/shop')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Shop
+            {step === 'payment' ? 'Back to Shipping' : 'Back to Shop'}
           </Button>
         </div>
       </header>
 
       <main className="container py-8">
-        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+        <h1 className="text-3xl font-bold mb-8 text-center">Checkout</h1>
 
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Shipping Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Shipping Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={user.email || ''}
-                  disabled
-                  className="bg-muted"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">Shipping Address</Label>
-                <Textarea
-                  id="address"
-                  placeholder="Enter your full shipping address..."
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  rows={4}
-                />
-              </div>
-            </CardContent>
-          </Card>
+        {step === 'shipping' ? (
+          <div className="grid lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Shipping Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Shipping Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={user.email || ''}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Shipping Address</Label>
+                  <Textarea
+                    id="address"
+                    placeholder="Enter your full shipping address..."
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Order Summary & Payment */}
-          <div className="space-y-6">
+            {/* Order Summary */}
             <Card>
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
@@ -390,51 +506,20 @@ export default function Checkout() {
                   <span>Total</span>
                   <span>${cartTotal.toFixed(2)}</span>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Select Payment Currency</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-2">
-                  {CRYPTO_OPTIONS.map((crypto) => (
-                    <Button
-                      key={crypto.id}
-                      variant={selectedCrypto.id === crypto.id ? 'default' : 'outline'}
-                      className="flex flex-col h-auto py-3"
-                      onClick={() => setSelectedCrypto(crypto)}
-                    >
-                      <span className={`w-6 h-6 rounded-full ${crypto.color} mb-1`} />
-                      <span className="text-xs">{crypto.symbol}</span>
-                    </Button>
-                  ))}
-                </div>
 
                 <Button
                   className="w-full"
                   size="lg"
-                  onClick={handleCheckout}
-                  disabled={loading}
+                  onClick={handleContinueToPayment}
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Creating Payment...
-                    </>
-                  ) : (
-                    `Pay with ${selectedCrypto.symbol}`
-                  )}
+                  Continue to Payment
                 </Button>
-
-                <p className="text-xs text-muted-foreground text-center">
-                  Payments are processed securely via NOWPayments.
-                </p>
               </CardContent>
             </Card>
           </div>
-        </div>
+        ) : (
+          <WalletPaymentCard />
+        )}
       </main>
     </div>
   );
