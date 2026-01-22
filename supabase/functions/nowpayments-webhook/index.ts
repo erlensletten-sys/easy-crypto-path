@@ -28,6 +28,26 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // SECURITY: Require IPN secret to be configured - reject all requests otherwise
+    const ipnSecret = Deno.env.get("NOWPAYMENTS_IPN_SECRET");
+    if (!ipnSecret) {
+      console.error("Webhook not configured: NOWPAYMENTS_IPN_SECRET missing");
+      return new Response(
+        JSON.stringify({ error: "Webhook not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // SECURITY: Require signature header
+    const signature = req.headers.get("x-nowpayments-sig");
+    if (!signature) {
+      console.error("Missing webhook signature header");
+      return new Response(
+        JSON.stringify({ error: "Missing signature" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -38,31 +58,34 @@ Deno.serve(async (req) => {
 
     console.log("Received webhook for payment:", payload.payment_id, "status:", payload.payment_status);
 
-    // Verify webhook signature if IPN secret is configured
-    const ipnSecret = Deno.env.get("NOWPAYMENTS_IPN_SECRET");
-    if (ipnSecret) {
-      const signature = req.headers.get("x-nowpayments-sig");
-      if (signature) {
-        // Sort payload keys and create HMAC
-        const sortedPayload = Object.keys(payload)
-          .sort()
-          .reduce((acc: Record<string, unknown>, key) => {
-            acc[key] = (payload as unknown as Record<string, unknown>)[key];
-            return acc;
-          }, {});
-        
-        const hmac = createHmac("sha512", ipnSecret);
-        hmac.update(JSON.stringify(sortedPayload));
-        const expectedSignature = hmac.digest("hex");
+    // SECURITY: Verify webhook signature (mandatory)
+    const sortedPayload = Object.keys(payload)
+      .sort()
+      .reduce((acc: Record<string, unknown>, key) => {
+        acc[key] = (payload as unknown as Record<string, unknown>)[key];
+        return acc;
+      }, {});
+    
+    const hmac = createHmac("sha512", ipnSecret);
+    hmac.update(JSON.stringify(sortedPayload));
+    const expectedSignature = hmac.digest("hex");
 
-        if (signature !== expectedSignature) {
-          console.error("Invalid webhook signature");
-          return new Response(
-            JSON.stringify({ error: "Invalid signature" }),
-            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-      }
+    if (signature !== expectedSignature) {
+      console.error("Invalid webhook signature");
+      return new Response(
+        JSON.stringify({ error: "Invalid signature" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // SECURITY: Validate order_id format (UUID)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!payload.order_id || !uuidRegex.test(payload.order_id)) {
+      console.error("Invalid order_id format:", payload.order_id);
+      return new Response(
+        JSON.stringify({ error: "Invalid order ID" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Map NOWPayments status to order status
