@@ -1,4 +1,4 @@
-import { Store, LogIn, LogOut, User } from 'lucide-react';
+import { Store, LogIn, LogOut, User, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { CartSheet } from './CartSheet';
@@ -6,6 +6,7 @@ import { SettingsModal } from './SettingsModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { CartItem } from '@/hooks/useCart';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 interface ShopHeaderProps {
   cartItems: CartItem[];
@@ -23,6 +24,7 @@ export function ShopHeader({
   onRemove,
 }: ShopHeaderProps) {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdminAuth();
   const navigate = useNavigate();
 
   // Calculate cart count and total if not provided
@@ -51,6 +53,11 @@ export function ShopHeader({
 
           {user ? (
             <div className="flex items-center gap-2">
+              {isAdmin && (
+                <Button variant="ghost" size="icon" onClick={() => navigate('/admin')}>
+                  <Shield className="h-5 w-5" />
+                </Button>
+              )}
               <Button variant="ghost" size="icon" onClick={() => navigate('/orders')}>
                 <User className="h-5 w-5" />
               </Button>
