@@ -16,8 +16,33 @@ import { ArrowLeft, CheckCircle, Loader2, Copy, Check, ChevronDown, HelpCircle }
 import { z } from 'zod';
 import { QRCodeSVG } from 'qrcode.react';
 
+// Sanitize address input by removing HTML tags and suspicious patterns
+const sanitizeAddress = (input: string): string => {
+  return input
+    // Remove HTML tags
+    .replace(/<[^>]*>/g, '')
+    // Remove script-like patterns
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+=/gi, '')
+    // Normalize whitespace
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
 const checkoutSchema = z.object({
-  address: z.string().min(10, 'Please enter a valid address').max(500),
+  address: z.string()
+    .min(10, 'Please enter a valid address')
+    .max(500, 'Address is too long')
+    .transform(sanitizeAddress)
+    .refine(
+      (val) => val.length >= 10,
+      { message: 'Please enter a valid address (at least 10 characters after sanitization)' }
+    )
+    .refine(
+      // Basic validation: should contain alphanumeric characters
+      (val) => /[a-zA-Z0-9]/.test(val),
+      { message: 'Address must contain valid characters' }
+    ),
 });
 
 const CRYPTO_OPTIONS = [
