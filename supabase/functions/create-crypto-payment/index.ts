@@ -5,6 +5,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Supported cryptocurrency currencies whitelist
+const SUPPORTED_CURRENCIES = ['btc', 'eth', 'usdt', 'ltc', 'xmr'] as const;
+type SupportedCurrency = typeof SUPPORTED_CURRENCIES[number];
+
 interface PaymentRequest {
   orderId: string;
   amount: number;
@@ -69,10 +73,36 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify the order belongs to this user
+    // SECURITY: Validate orderId format (UUID)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(orderId)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid order ID format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // SECURITY: Validate currency against whitelist
+    const normalizedCurrency = currency.toLowerCase();
+    if (!SUPPORTED_CURRENCIES.includes(normalizedCurrency as SupportedCurrency)) {
+      return new Response(
+        JSON.stringify({ error: "Unsupported currency. Supported: " + SUPPORTED_CURRENCIES.join(", ") }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // SECURITY: Validate amount is a positive number
+    if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0) {
+      return new Response(
+        JSON.stringify({ error: "Amount must be a positive number" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify the order belongs to this user and get order details
     const { data: order, error: orderError } = await supabase
       .from("orders")
-      .select("id, user_id, total")
+      .select("id, user_id, total, payment_id, payment_status")
       .eq("id", orderId)
       .single();
 
@@ -87,6 +117,30 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Unauthorized to access this order" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // SECURITY: Check if payment already exists for this order
+    if (order.payment_id) {
+      return new Response(
+        JSON.stringify({ error: "Payment already exists for this order" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // SECURITY: Validate order is in valid state for payment
+    if (order.payment_status && order.payment_status !== 'awaiting_payment') {
+      return new Response(
+        JSON.stringify({ error: "Order is not awaiting payment" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // SECURITY: Validate amount matches order total (allow small floating point tolerance)
+    if (Math.abs(order.total - amount) > 0.01) {
+      return new Response(
+        JSON.stringify({ error: "Amount does not match order total" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -107,9 +161,9 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        price_amount: amount,
+        price_amount: order.total, // Use server-side order total, not client-provided amount
         price_currency: "usd",
-        pay_currency: currency.toLowerCase(),
+        pay_currency: normalizedCurrency,
         order_id: orderId,
         order_description: `Order ${orderId}`,
         ipn_callback_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/nowpayments-webhook`,
@@ -120,7 +174,7 @@ Deno.serve(async (req) => {
       const errorText = await paymentResponse.text();
       console.error("NOWPayments API error:", errorText);
       return new Response(
-        JSON.stringify({ error: "Failed to create payment", details: errorText }),
+        JSON.stringify({ error: "Failed to create payment" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
