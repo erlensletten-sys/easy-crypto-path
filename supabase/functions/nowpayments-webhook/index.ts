@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { createHmac } from "https://deno.land/std@0.177.0/node/crypto.ts";
+import { checkRateLimit, createRateLimitResponse, RATE_LIMIT_PRESETS } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,6 +29,18 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // SECURITY: Rate limiting by IP for webhooks - 100 requests per minute
+    // Use forwarded IP or fallback to a generic identifier
+    const clientIP = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
+                     req.headers.get("cf-connecting-ip") || 
+                     "webhook-caller";
+    
+    const rateLimitResult = checkRateLimit(clientIP, RATE_LIMIT_PRESETS.webhook);
+    if (!rateLimitResult.allowed) {
+      console.warn(`Rate limit exceeded for IP ${clientIP} on nowpayments-webhook`);
+      return createRateLimitResponse(rateLimitResult, corsHeaders);
+    }
+
     // SECURITY: Require IPN secret to be configured - reject all requests otherwise
     const ipnSecret = Deno.env.get("NOWPAYMENTS_IPN_SECRET");
     if (!ipnSecret) {

@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkRateLimit, createRateLimitResponse, addRateLimitHeaders, RATE_LIMIT_PRESETS } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -35,7 +36,14 @@ Deno.serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    const userId = claimsData.claims.sub;
+    const userId = claimsData.claims.sub as string;
+
+    // SECURITY: Rate limiting - 30 status checks per minute per user
+    const rateLimitResult = checkRateLimit(userId, RATE_LIMIT_PRESETS.checkStatus);
+    if (!rateLimitResult.allowed) {
+      console.warn(`Rate limit exceeded for user ${userId} on check-payment-status`);
+      return createRateLimitResponse(rateLimitResult, corsHeaders);
+    }
 
     const url = new URL(req.url);
     const paymentId = url.searchParams.get("paymentId");
@@ -104,7 +112,7 @@ Deno.serve(async (req) => {
         actually_paid: statusData.actually_paid,
         pay_currency: statusData.pay_currency,
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: addRateLimitHeaders({ ...corsHeaders, "Content-Type": "application/json" }, rateLimitResult) }
     );
   } catch (error) {
     console.error("Error checking payment status:", error);
