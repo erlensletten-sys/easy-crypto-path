@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkRateLimit, createRateLimitResponse, addRateLimitHeaders, RATE_LIMIT_PRESETS } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -61,7 +62,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    const userId = claimsData.claims.sub;
+    const userId = claimsData.claims.sub as string;
+
+    // SECURITY: Rate limiting - 5 payment creations per minute per user
+    const rateLimitResult = checkRateLimit(userId, RATE_LIMIT_PRESETS.createPayment);
+    if (!rateLimitResult.allowed) {
+      console.warn(`Rate limit exceeded for user ${userId} on create-crypto-payment`);
+      return createRateLimitResponse(rateLimitResult, corsHeaders);
+    }
 
     // Parse request body
     const { orderId, amount, currency }: PaymentRequest = await req.json();
@@ -208,7 +216,7 @@ Deno.serve(async (req) => {
           payment_status: paymentData.payment_status,
         },
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: addRateLimitHeaders({ ...corsHeaders, "Content-Type": "application/json" }, rateLimitResult) }
     );
   } catch (error) {
     console.error("Error creating payment:", error);

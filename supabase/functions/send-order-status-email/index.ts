@@ -1,3 +1,5 @@
+import { checkRateLimit, createRateLimitResponse, RATE_LIMIT_PRESETS } from "../_shared/rate-limiter.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -43,6 +45,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   try {
     const { to, orderId, newStatus, orderTotal, customerName }: OrderStatusEmailRequest = await req.json();
+
+    // SECURITY: Rate limiting - 10 emails per minute per recipient
+    // Use email address as identifier to prevent spam to a single user
+    const rateLimitResult = checkRateLimit(to, RATE_LIMIT_PRESETS.sendEmail);
+    if (!rateLimitResult.allowed) {
+      console.warn(`Rate limit exceeded for email ${to} on send-order-status-email`);
+      return createRateLimitResponse(rateLimitResult, corsHeaders);
+    }
 
     const statusInfo = statusMessages[newStatus] || {
       subject: "Order Status Update",
