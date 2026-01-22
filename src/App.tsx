@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
+import ProductDetail from "./pages/ProductDetail";
 import Auth from "./pages/Auth";
 import Checkout from "./pages/Checkout";
 import Orders from "./pages/Orders";
@@ -26,6 +27,7 @@ const App = () => (
               <Route path="/" element={<Navigate to="/shop" replace />} />
               <Route path="/wallet" element={<Index />} />
               <Route path="/shop" element={<Shop />} />
+              <Route path="/shop/product/:id" element={<ProductDetail />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />

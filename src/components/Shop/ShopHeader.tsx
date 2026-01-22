@@ -2,14 +2,15 @@ import { Store, LogIn, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { CartSheet } from './CartSheet';
+import { SettingsModal } from './SettingsModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { CartItem } from '@/hooks/useCart';
 
 interface ShopHeaderProps {
   cartItems: CartItem[];
-  cartCount: number;
-  cartTotal: number;
+  cartCount?: number;
+  cartTotal?: number;
   onUpdateQuantity: (cartItemId: string, quantity: number) => void;
   onRemove: (cartItemId: string) => void;
 }
@@ -24,6 +25,10 @@ export function ShopHeader({
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
+  // Calculate cart count and total if not provided
+  const displayCount = cartCount ?? cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const displayTotal = cartTotal ?? 0;
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -33,12 +38,13 @@ export function ShopHeader({
         </Link>
 
         <div className="flex items-center gap-3">
+          <SettingsModal />
           <ThemeToggle />
           
           <CartSheet
             cartItems={cartItems}
-            cartCount={cartCount}
-            cartTotal={cartTotal}
+            cartCount={displayCount}
+            cartTotal={displayTotal}
             onUpdateQuantity={onUpdateQuantity}
             onRemove={onRemove}
           />
