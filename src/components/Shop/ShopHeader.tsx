@@ -1,4 +1,4 @@
-import { Store, LogIn, LogOut, User, Shield } from 'lucide-react';
+import { LogIn, LogOut, User, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { CartSheet } from './CartSheet';
@@ -35,10 +35,10 @@ export function ShopHeader({
   const displayTotal = cartTotal ?? 0;
   return <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <Link to="/shop" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <Store className="h-6 w-6 text-primary" />
+        <Link to="/shop" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <img src="/favicon.png" alt="NoToGreed Logo" className="h-8 w-8" />
           <div className="flex flex-col leading-tight">
-            <span className="font-bold text-lg">NoToGreed.shop </span>
+            <span className="font-bold text-lg">NoToGreed.shop</span>
             <span className="text-xs text-muted-foreground">Premium Goods at Premium Prices</span>
           </div>
         </Link>
