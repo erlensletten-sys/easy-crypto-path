@@ -2,11 +2,13 @@ import { useState, useMemo } from 'react';
 import { ShopHeader } from '@/components/Shop/ShopHeader';
 import { ProductGrid } from '@/components/Shop/ProductGrid';
 import { CategoryFilter } from '@/components/Shop/CategoryFilter';
+import { ProductSearch } from '@/components/Shop/ProductSearch';
 import { useProducts } from '@/hooks/useProducts';
 import { useCart } from '@/hooks/useCart';
 
 export default function Shop() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const { products, loading } = useProducts();
   const {
     cartItems,
@@ -23,9 +25,25 @@ export default function Shop() {
   }, [products]);
 
   const filteredProducts = useMemo(() => {
-    if (!selectedCategory) return products;
-    return products.filter((p) => p.category === selectedCategory);
-  }, [products, selectedCategory]);
+    let filtered = products;
+    
+    // Filter by category
+    if (selectedCategory) {
+      filtered = filtered.filter((p) => p.category === selectedCategory);
+    }
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.name.toLowerCase().includes(query) ||
+          (p.description && p.description.toLowerCase().includes(query))
+      );
+    }
+    
+    return filtered;
+  }, [products, selectedCategory, searchQuery]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,7 +63,8 @@ export default function Shop() {
           </p>
         </div>
 
-        <div className="mb-6">
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <ProductSearch value={searchQuery} onChange={setSearchQuery} />
           <CategoryFilter
             categories={categories}
             selectedCategory={selectedCategory}
