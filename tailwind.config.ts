@@ -20,7 +20,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Aeonik', 'Inter', ...fontFamily.sans],
+        sans: ['Geist Sans', 'Inter', ...fontFamily.sans],
       },
       colors: {
         border: "hsl(var(--border))",
