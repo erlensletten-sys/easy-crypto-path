@@ -1,4 +1,11 @@
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface CategoryFilterProps {
   categories: string[];
@@ -12,24 +19,21 @@ export function CategoryFilter({
   onSelectCategory,
 }: CategoryFilterProps) {
   return (
-    <div className="flex flex-wrap gap-2">
-      <Button
-        variant={selectedCategory === null ? 'default' : 'outline'}
-        size="sm"
-        onClick={() => onSelectCategory(null)}
-      >
-        All
-      </Button>
-      {categories.map((category) => (
-        <Button
-          key={category}
-          variant={selectedCategory === category ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => onSelectCategory(category)}
-        >
-          {category}
-        </Button>
-      ))}
-    </div>
+    <Select
+      value={selectedCategory || 'all'}
+      onValueChange={(value) => onSelectCategory(value === 'all' ? null : value)}
+    >
+      <SelectTrigger className="w-[140px]">
+        <SelectValue placeholder="Category" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All</SelectItem>
+        {categories.map((category) => (
+          <SelectItem key={category} value={category}>
+            {category}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
