@@ -38,7 +38,7 @@ export function ShopHeader({
         <Link to="/shop" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <Store className="h-6 w-6 text-primary" />
           <div className="flex flex-col leading-tight">
-            <span className="font-bold text-lg">NoToGreed Group</span>
+            <span className="font-bold text-lg">NoToGreed.shop </span>
             <span className="text-xs text-muted-foreground">Premium Goods at Premium Prices</span>
           </div>
         </Link>
