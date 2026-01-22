@@ -59,6 +59,9 @@ export function useAdminOrders() {
 
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
+      // Find the order to get customer email
+      const order = orders.find((o) => o.id === orderId);
+      
       const { error } = await supabase
         .from('orders')
         .update({ status })
@@ -67,10 +70,28 @@ export function useAdminOrders() {
       if (error) throw error;
 
       setOrders((prev) =>
-        prev.map((order) =>
-          order.id === orderId ? { ...order, status } : order
+        prev.map((o) =>
+          o.id === orderId ? { ...o, status } : o
         )
       );
+      
+      // Send email notification
+      if (order?.profile?.email) {
+        try {
+          await supabase.functions.invoke('send-order-status-email', {
+            body: {
+              to: order.profile.email,
+              orderId,
+              newStatus: status,
+              orderTotal: order.total,
+              customerName: order.profile.display_name,
+            },
+          });
+        } catch (emailError) {
+          console.error('Failed to send email notification:', emailError);
+          // Don't fail the status update if email fails
+        }
+      }
       
       toast.success('Order status updated');
       return { error: null };
