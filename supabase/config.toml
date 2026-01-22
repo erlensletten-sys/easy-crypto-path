@@ -2,3 +2,12 @@ project_id = "cyppvctzboasgvesusae"
 
 [functions.send-order-status-email]
 verify_jwt = false
+
+[functions.create-crypto-payment]
+verify_jwt = false
+
+[functions.nowpayments-webhook]
+verify_jwt = false
+
+[functions.check-payment-status]
+verify_jwt = false
