@@ -1,4 +1,5 @@
 import { ShoppingCart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,10 +11,23 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const navigate = useNavigate();
   const isOutOfStock = product.stock <= 0;
 
+  const handleCardClick = () => {
+    navigate(`/shop/product/${product.id}`);
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddToCart(product.id);
+  };
+
   return (
-    <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 border-border/50 bg-card">
+    <Card 
+      className="overflow-hidden group hover:shadow-lg transition-all duration-300 border-border/50 bg-card cursor-pointer"
+      onClick={handleCardClick}
+    >
       <div className="aspect-square overflow-hidden relative">
         <img
           src={product.image_url || '/placeholder.svg'}
@@ -46,7 +60,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         </span>
         <Button
           size="sm"
-          onClick={() => onAddToCart(product.id)}
+          onClick={handleAddToCart}
           disabled={isOutOfStock}
           className="gap-2"
         >
