@@ -1,3 +1,37 @@
+/* Aeonik font - requires local installation or license */
+@font-face {
+  font-family: 'Aeonik';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Aeonik'), local('Aeonik-Regular');
+}
+
+@font-face {
+  font-family: 'Aeonik';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: local('Aeonik Medium'), local('Aeonik-Medium');
+}
+
+@font-face {
+  font-family: 'Aeonik';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Aeonik Bold'), local('Aeonik-Bold');
+}
+
+@font-face {
+  font-family: 'Aeonik';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Aeonik Bold'), local('Aeonik-Bold');
+}
+
+/* Fallback to Inter if Aeonik not available */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -104,7 +138,7 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Aeonik', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   /* Smooth theme transitions */
