@@ -12,6 +12,7 @@ import { existsSync, mkdirSync } from 'fs';
 import dotenv from 'dotenv';
 import * as openpgp from 'openpgp';
 import crypto from 'crypto';
+import { verifyTransaction, getMinConfirmations, hasEnoughConfirmations } from './blockchainVerification.js';
 
 dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '..', '.env') });
 
@@ -979,27 +980,53 @@ app.post('/api/orders/:id/verify-payment', authenticate, async (req, res) => {
       }
     }
 
-    // Check if transaction already exists
+    // Verify transaction on blockchain
+    console.log(`🔍 Verifying payment for order ${order.order_number}`);
+    const verification = await verifyTransaction(txHash, cryptoId);
+
+    if (!verification.found) {
+      return res.status(400).json({
+        error: 'Transaction verification failed',
+        details: verification.error || 'Transaction not found on blockchain'
+      });
+    }
+
+    // Check if transaction already exists in our database
     let transaction = db.prepare('SELECT * FROM transactions WHERE tx_hash = ?').get(txHash);
 
     if (!transaction) {
-      // Create new transaction record
-      // In a real system, you would verify the transaction on the blockchain here
-      // For now, we'll create it with pending status
+      // Create new transaction record with blockchain data
       const result = db.prepare(`
         INSERT INTO transactions (tx_hash, crypto_id, amount, address, status, confirmations)
-        VALUES (?, ?, ?, ?, 'pending', 0)
-      `).run(txHash, cryptoId.toLowerCase(), order.total_amount, 'pending_address');
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(
+        txHash,
+        cryptoId.toLowerCase(),
+        verification.amount || 0,
+        verification.to || verification.from || 'verified',
+        verification.status,
+        verification.confirmations || 0
+      );
 
       transaction = db.prepare('SELECT * FROM transactions WHERE id = ?').get(result.lastInsertRowid);
+    } else {
+      // Update existing transaction with latest blockchain data
+      db.prepare(`
+        UPDATE transactions
+        SET confirmations = ?, status = ?, updated_at = datetime('now')
+        WHERE tx_hash = ?
+      `).run(verification.confirmations || 0, verification.status, txHash);
+
+      transaction = db.prepare('SELECT * FROM transactions WHERE tx_hash = ?').get(txHash);
     }
 
-    // Update order with payment transaction hash
+    // Update order with payment transaction hash and status
+    const newOrderStatus = verification.status === 'verified' ? 'processing' : 'pending';
     db.prepare(`
       UPDATE orders
-      SET payment_tx_hash = ?, payment_method = ?, updated_at = datetime('now')
+      SET payment_tx_hash = ?, payment_method = ?, status = ?, updated_at = datetime('now')
       WHERE id = ?
-    `).run(txHash, cryptoId.toLowerCase(), id);
+    `).run(txHash, cryptoId.toLowerCase(), newOrderStatus, id);
 
     // Return updated order and transaction status
     const updatedOrder = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
@@ -1007,10 +1034,21 @@ app.post('/api/orders/:id/verify-payment', authenticate, async (req, res) => {
     updatedOrder.items = items;
     updatedOrder.transaction = transaction;
 
+    const minConfirmations = getMinConfirmations(cryptoId);
+
     res.json({
-      message: 'Payment verification submitted',
+      message: verification.status === 'verified'
+        ? 'Payment verified successfully'
+        : `Payment found but waiting for confirmations (${verification.confirmations}/${minConfirmations})`,
       order: updatedOrder,
-      transaction
+      transaction,
+      verification: {
+        found: true,
+        confirmations: verification.confirmations,
+        minConfirmations,
+        status: verification.status,
+        blockHeight: verification.blockHeight || verification.blockNumber
+      }
     });
   } catch (error) {
     console.error('Payment verification error:', error);
@@ -1042,16 +1080,92 @@ app.get('/api/orders/:id/payment-status', authenticate, async (req, res) => {
       transaction = db.prepare('SELECT * FROM transactions WHERE tx_hash = ?').get(order.payment_tx_hash);
     }
 
+    const minConfirmations = transaction ? getMinConfirmations(transaction.crypto_id) : 0;
+
     res.json({
       orderId: order.id,
       orderNumber: order.order_number,
       paymentTxHash: order.payment_tx_hash,
       paymentMethod: order.payment_method,
       orderStatus: order.status,
-      transaction: transaction || null
+      transaction: transaction || null,
+      minConfirmations
     });
   } catch (error) {
     console.error('Payment status error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Refresh payment status (check blockchain for updates)
+app.post('/api/orders/:id/refresh-payment', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (!order.payment_tx_hash || !order.payment_method) {
+      return res.status(400).json({ error: 'No payment transaction to refresh' });
+    }
+
+    // For non-admins, verify they own this order
+    if (req.userRole !== 'admin') {
+      const user = db.prepare('SELECT email FROM users WHERE id = ?').get(req.userId);
+      if (order.customer_email !== user.email) {
+        return res.status(403).json({ error: 'Not authorized to refresh this order' });
+      }
+    }
+
+    // Re-verify transaction on blockchain
+    console.log(`🔄 Refreshing payment status for order ${order.order_number}`);
+    const verification = await verifyTransaction(order.payment_tx_hash, order.payment_method);
+
+    if (!verification.found) {
+      return res.status(400).json({
+        error: 'Transaction verification failed',
+        details: verification.error
+      });
+    }
+
+    // Update transaction in database
+    db.prepare(`
+      UPDATE transactions
+      SET confirmations = ?, status = ?, updated_at = datetime('now')
+      WHERE tx_hash = ?
+    `).run(verification.confirmations || 0, verification.status, order.payment_tx_hash);
+
+    // Update order status if payment is now verified
+    if (verification.status === 'verified' && order.status === 'pending') {
+      db.prepare(`
+        UPDATE orders
+        SET status = 'processing', updated_at = datetime('now')
+        WHERE id = ?
+      `).run(id);
+    }
+
+    // Get updated data
+    const updatedOrder = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
+    const transaction = db.prepare('SELECT * FROM transactions WHERE tx_hash = ?').get(order.payment_tx_hash);
+    const minConfirmations = getMinConfirmations(order.payment_method);
+
+    res.json({
+      message: verification.status === 'verified'
+        ? 'Payment verified successfully'
+        : `Payment status updated (${verification.confirmations}/${minConfirmations} confirmations)`,
+      order: updatedOrder,
+      transaction,
+      verification: {
+        found: true,
+        confirmations: verification.confirmations,
+        minConfirmations,
+        status: verification.status
+      }
+    });
+  } catch (error) {
+    console.error('Refresh payment error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

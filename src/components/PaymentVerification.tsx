@@ -42,6 +42,7 @@ const PaymentVerification = ({
   const [txHash, setTxHash] = useState("");
   const [cryptoId, setCryptoId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<any>(null);
 
   const cryptoOptions = [
@@ -71,10 +72,17 @@ const PaymentVerification = ({
       const result = await apiClient.verifyPayment(orderId, txHash, cryptoId);
       setPaymentStatus(result);
 
-      toast({
-        title: t('crypto.paymentVerified'),
-        description: t('crypto.paymentPending'),
-      });
+      if (result.verification?.status === 'verified') {
+        toast({
+          title: t('crypto.paymentVerified'),
+          description: `${result.verification.confirmations} ${t('crypto.confirmations')}`,
+        });
+      } else {
+        toast({
+          title: t('crypto.paymentPending'),
+          description: `${result.verification?.confirmations || 0}/${result.verification?.minConfirmations || 0} ${t('crypto.confirmations')}`,
+        });
+      }
 
       if (onVerified) {
         onVerified();
@@ -87,8 +95,41 @@ const PaymentVerification = ({
         description: error instanceof Error ? error.message : t('errors.tryAgain'),
         variant: "destructive",
       });
+      setPaymentStatus(null); // Reset on error
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRefreshStatus = async () => {
+    setRefreshing(true);
+    try {
+      const result = await apiClient.refreshPayment(orderId);
+      setPaymentStatus(result);
+
+      if (result.verification?.status === 'verified') {
+        toast({
+          title: t('crypto.paymentVerified'),
+          description: `${result.verification.confirmations} ${t('crypto.confirmations')}`,
+        });
+
+        if (onVerified) {
+          onVerified();
+        }
+      } else {
+        toast({
+          title: "Status oppdatert",
+          description: `${result.verification?.confirmations || 0}/${result.verification?.minConfirmations || 0} ${t('crypto.confirmations')}`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Oppdatering mislyktes",
+        description: error instanceof Error ? error.message : t('errors.tryAgain'),
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -194,14 +235,40 @@ const PaymentVerification = ({
               {getStatusBadge(paymentStatus.transaction?.status || 'pending')}
             </div>
 
-            {paymentStatus.transaction && (
-              <div className="space-y-2 p-4 bg-muted rounded-lg">
+            {paymentStatus.verification && (
+              <div className="space-y-2 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Bekreftelser fra blockchain</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRefreshStatus}
+                    disabled={refreshing}
+                  >
+                    <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                  </Button>
+                </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t('crypto.confirmations')}:</span>
-                  <span className="font-medium">
-                    {paymentStatus.transaction.confirmations}
+                  <span className="font-bold">
+                    {paymentStatus.verification.confirmations}/{paymentStatus.verification.minConfirmations}
                   </span>
                 </div>
+                {paymentStatus.verification.status === 'verified' && (
+                  <p className="text-sm text-green-600 dark:text-green-400 font-medium">
+                    ✓ Transaksjon bekreftet på blockchain
+                  </p>
+                )}
+                {paymentStatus.verification.status === 'pending' && (
+                  <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                    Venter på flere bekreftelser...
+                  </p>
+                )}
+              </div>
+            )}
+
+            {paymentStatus.transaction && (
+              <div className="space-y-2 p-4 bg-muted rounded-lg">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t('crypto.amount')}:</span>
                   <span className="font-medium">
@@ -214,7 +281,16 @@ const PaymentVerification = ({
               </div>
             )}
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              {paymentStatus.verification?.status === 'pending' && (
+                <Button
+                  variant="outline"
+                  onClick={handleRefreshStatus}
+                  disabled={refreshing}
+                >
+                  {refreshing ? t('crypto.checking') : 'Sjekk på nytt'}
+                </Button>
+              )}
               <Button onClick={() => setOpen(false)}>
                 {t('common.close') || 'Close'}
               </Button>

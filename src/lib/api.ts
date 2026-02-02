@@ -280,6 +280,12 @@ class ApiClient {
   async getPaymentStatus(orderId: number) {
     return this.request(`/orders/${orderId}/payment-status`);
   }
+
+  async refreshPayment(orderId: number) {
+    return this.request(`/orders/${orderId}/refresh-payment`, {
+      method: 'POST',
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
