@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import { apiClient } from "@/lib/api";
 import { LogOut, Key, Database, AlertCircle, CheckCircle, Wallet, Package, ShoppingBag, ArrowRight } from "lucide-react";
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -43,7 +45,7 @@ const Dashboard = () => {
       const data = await apiClient.getTransactions();
       setTransactions(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load transactions");
+      setError(err instanceof Error ? err.message : t('errors.failedToLoadTransactions'));
       if (err instanceof Error && err.message.includes("token")) {
         navigate("/login");
       }
@@ -67,12 +69,12 @@ const Dashboard = () => {
     setPasswordSuccess(false);
 
     if (newPassword !== confirmPassword) {
-      setPasswordError("Passwords do not match");
+      setPasswordError(t('errors.passwordMismatch'));
       return;
     }
 
     if (newPassword.length < 8) {
-      setPasswordError("Password must be at least 8 characters");
+      setPasswordError(t('errors.passwordTooShort'));
       return;
     }
 
@@ -83,7 +85,7 @@ const Dashboard = () => {
         navigate("/login");
       }, 2000);
     } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : "Failed to change password");
+      setPasswordError(err instanceof Error ? err.message : t('errors.failedToChangePassword'));
     }
   };
 
@@ -103,7 +105,7 @@ const Dashboard = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Database className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
-          <p className="text-muted-foreground">Loading dashboard...</p>
+          <p className="text-muted-foreground">{t('dashboard.loading')}</p>
         </div>
       </div>
     );
@@ -115,9 +117,9 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">{isAdmin ? "Admin" : "User"} Dashboard</h1>
+            <h1 className="text-3xl font-bold">{isAdmin ? t('dashboard.adminDashboard') : t('dashboard.userDashboard')}</h1>
             <p className="text-muted-foreground">
-              {isAdmin ? "Manage products, orders, and system settings" : "View your orders and account"}
+              {isAdmin ? t('dashboard.manageSystem') : t('dashboard.viewAccount')}
             </p>
           </div>
           <div className="flex gap-2">
@@ -125,14 +127,14 @@ const Dashboard = () => {
               <DialogTrigger asChild>
                 <Button variant="outline">
                   <Key className="h-4 w-4 mr-2" />
-                  Change Password
+                  {t('passwordChange.button')}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Change Password</DialogTitle>
+                  <DialogTitle>{t('passwordChange.title')}</DialogTitle>
                   <DialogDescription>
-                    Update your password. You will be logged out after changing.
+                    {t('passwordChange.description')}
                   </DialogDescription>
                 </DialogHeader>
 
@@ -147,12 +149,12 @@ const Dashboard = () => {
                   {passwordSuccess && (
                     <Alert>
                       <CheckCircle className="h-4 w-4" />
-                      <AlertDescription>Password changed successfully! Redirecting...</AlertDescription>
+                      <AlertDescription>{t('passwordChange.success')}</AlertDescription>
                     </Alert>
                   )}
 
                   <div className="space-y-2">
-                    <Label htmlFor="current">Current Password</Label>
+                    <Label htmlFor="current">{t('passwordChange.currentPassword')}</Label>
                     <Input
                       id="current"
                       type="password"
@@ -163,7 +165,7 @@ const Dashboard = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="new">New Password</Label>
+                    <Label htmlFor="new">{t('passwordChange.newPassword')}</Label>
                     <Input
                       id="new"
                       type="password"
@@ -175,7 +177,7 @@ const Dashboard = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirm">Confirm New Password</Label>
+                    <Label htmlFor="confirm">{t('passwordChange.confirmPassword')}</Label>
                     <Input
                       id="confirm"
                       type="password"
@@ -187,7 +189,7 @@ const Dashboard = () => {
                   </div>
 
                   <Button type="submit" className="w-full">
-                    Change Password
+                    {t('passwordChange.changePassword')}
                   </Button>
                 </form>
               </DialogContent>
@@ -195,7 +197,7 @@ const Dashboard = () => {
 
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
-              Logout
+              {t('common.logout')}
             </Button>
           </div>
         </div>

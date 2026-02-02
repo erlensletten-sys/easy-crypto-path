@@ -9,10 +9,10 @@ import fetch from 'node-fetch';
 const MIN_CONFIRMATIONS = {
   btc: 3,
   eth: 12,
-  ltc: 6,
   usdt: 12, // ERC-20 token on Ethereum
   usdc: 12, // ERC-20 token on Ethereum
   bnb: 15,
+  ltc: 6,  // Kept for backward compatibility but not primary
   default: 6
 };
 
@@ -214,13 +214,13 @@ export async function verifyTransaction(txHash, cryptoId) {
         result = await verifyEthereumTransaction(txHash);
         break;
 
-      case 'ltc':
-        result = await verifyLitecoinTransaction(txHash);
-        break;
-
       case 'usdt':
       case 'usdc':
         result = await verifyERC20Transaction(txHash, crypto);
+        break;
+
+      case 'ltc':
+        result = await verifyLitecoinTransaction(txHash);
         break;
 
       case 'bnb':

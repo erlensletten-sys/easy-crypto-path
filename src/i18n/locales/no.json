@@ -202,6 +202,29 @@
     "adminRequired": "Admin-tilgang påkrevd",
     "invalidInput": "Ugyldig inndata",
     "requiredFields": "Fyll ut alle påkrevde felt",
-    "tryAgain": "Vennligst prøv igjen senere"
+    "tryAgain": "Vennligst prøv igjen senere",
+    "passwordMismatch": "Passordene stemmer ikke overens",
+    "passwordTooShort": "Passordet må være minst 8 tegn",
+    "failedToChangePassword": "Kunne ikke endre passord",
+    "failedToLoadTransactions": "Kunne ikke laste transaksjoner",
+    "failedToLoadOrders": "Kunne ikke laste bestillinger"
+  },
+  "passwordChange": {
+    "title": "Endre passord",
+    "description": "Oppdater passordet ditt. Du vil bli logget ut etter endring.",
+    "currentPassword": "Nåværende passord",
+    "newPassword": "Nytt passord",
+    "confirmPassword": "Bekreft nytt passord",
+    "changePassword": "Endre passord",
+    "success": "Passord endret! Omdirigerer...",
+    "button": "Endre passord"
+  },
+  "dashboard": {
+    "loading": "Laster dashbord...",
+    "adminDashboard": "Admin Dashbord",
+    "userDashboard": "Bruker Dashbord",
+    "manageSystem": "Administrer produkter, bestillinger og systeminnstillinger",
+    "viewAccount": "Se dine bestillinger og konto",
+    "quickActions": "Hurtighandlinger"
   }
 }

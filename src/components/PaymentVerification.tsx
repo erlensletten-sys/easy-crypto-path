@@ -51,7 +51,6 @@ const PaymentVerification = ({
     { value: "usdt", label: "Tether (USDT)" },
     { value: "usdc", label: "USD Coin (USDC)" },
     { value: "bnb", label: "Binance Coin (BNB)" },
-    { value: "ltc", label: "Litecoin (LTC)" },
   ];
 
   const handleVerifyPayment = async (e: React.FormEvent) => {
