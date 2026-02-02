@@ -219,12 +219,12 @@ const Dashboard = () => {
                   <Package className="h-8 w-8 text-primary" />
                   <ArrowRight className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <CardTitle className="text-xl">Products</CardTitle>
-                <CardDescription>Manage your product catalog with photos</CardDescription>
+                <CardTitle className="text-xl">{t('dashboard.productsTitle')}</CardTitle>
+                <CardDescription>{t('dashboard.productsDescription')}</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-primary">Manage</p>
-                <p className="text-sm text-muted-foreground mt-1">Add, edit, or remove products</p>
+                <p className="text-2xl font-bold text-primary">{t('dashboard.manageProducts')}</p>
+                <p className="text-sm text-muted-foreground mt-1">{t('dashboard.addEditRemove')}</p>
               </CardContent>
             </Card>
 
@@ -234,12 +234,12 @@ const Dashboard = () => {
                   <Wallet className="h-8 w-8 text-primary" />
                   <ArrowRight className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <CardTitle className="text-xl">Wallets</CardTitle>
-                <CardDescription>Configure crypto wallet addresses</CardDescription>
+                <CardTitle className="text-xl">{t('dashboard.walletsTitle')}</CardTitle>
+                <CardDescription>{t('dashboard.walletsDescription')}</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-primary">Configure</p>
-                <p className="text-sm text-muted-foreground mt-1">Add addresses and xpubs</p>
+                <p className="text-2xl font-bold text-primary">{t('dashboard.configureWallets')}</p>
+                <p className="text-sm text-muted-foreground mt-1">{t('dashboard.addAddressesXpubs')}</p>
               </CardContent>
             </Card>
 
@@ -249,12 +249,12 @@ const Dashboard = () => {
                   <ShoppingBag className="h-8 w-8 text-primary" />
                   <ArrowRight className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <CardTitle className="text-xl">Orders</CardTitle>
-                <CardDescription>View and manage all orders</CardDescription>
+                <CardTitle className="text-xl">{t('dashboard.ordersTitle')}</CardTitle>
+                <CardDescription>{t('dashboard.ordersDescription')}</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-primary">View All</p>
-                <p className="text-sm text-muted-foreground mt-1">Manage customer orders</p>
+                <p className="text-2xl font-bold text-primary">{t('dashboard.viewAll')}</p>
+                <p className="text-sm text-muted-foreground mt-1">{t('dashboard.manageOrders')}</p>
               </CardContent>
             </Card>
           </div>
@@ -269,12 +269,12 @@ const Dashboard = () => {
                   <Package className="h-8 w-8 text-primary" />
                   <ArrowRight className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <CardTitle className="text-xl">Browse Products</CardTitle>
-                <CardDescription>View available products</CardDescription>
+                <CardTitle className="text-xl">{t('dashboard.browseProductsTitle')}</CardTitle>
+                <CardDescription>{t('dashboard.browseDescription')}</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-primary">Shop</p>
-                <p className="text-sm text-muted-foreground mt-1">Browse our catalog</p>
+                <p className="text-2xl font-bold text-primary">{t('dashboard.shop')}</p>
+                <p className="text-sm text-muted-foreground mt-1">{t('dashboard.browseCatalog')}</p>
               </CardContent>
             </Card>
 
@@ -284,12 +284,12 @@ const Dashboard = () => {
                   <ShoppingBag className="h-8 w-8 text-primary" />
                   <ArrowRight className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <CardTitle className="text-xl">My Orders</CardTitle>
-                <CardDescription>View your order history</CardDescription>
+                <CardTitle className="text-xl">{t('dashboard.myOrdersTitle')}</CardTitle>
+                <CardDescription>{t('dashboard.myOrdersDescription')}</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-primary">View</p>
-                <p className="text-sm text-muted-foreground mt-1">Track your orders</p>
+                <p className="text-2xl font-bold text-primary">{t('dashboard.viewOrders')}</p>
+                <p className="text-sm text-muted-foreground mt-1">{t('dashboard.trackOrders')}</p>
               </CardContent>
             </Card>
           </div>
@@ -299,29 +299,29 @@ const Dashboard = () => {
         {isAdmin && (
           <Card>
             <CardHeader>
-              <CardTitle>Recent Transactions</CardTitle>
+              <CardTitle>{t('dashboard.recentTransactions')}</CardTitle>
               <CardDescription>
-                All cryptocurrency transactions processed by the system
+                {t('dashboard.recentTransactionsDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {transactions.length === 0 ? (
                 <div className="text-center py-12">
                   <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No transactions yet</p>
+                  <p className="text-muted-foreground">{t('dashboard.noTransactionsYet')}</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>TX Hash</TableHead>
-                        <TableHead>Crypto</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Address</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Confirmations</TableHead>
-                        <TableHead>Date</TableHead>
+                        <TableHead>{t('dashboard.txHash')}</TableHead>
+                        <TableHead>{t('dashboard.crypto')}</TableHead>
+                        <TableHead>{t('dashboard.amount')}</TableHead>
+                        <TableHead>{t('dashboard.address')}</TableHead>
+                        <TableHead>{t('dashboard.status')}</TableHead>
+                        <TableHead>{t('dashboard.confirmations')}</TableHead>
+                        <TableHead>{t('dashboard.date')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
