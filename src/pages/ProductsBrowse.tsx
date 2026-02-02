@@ -1,15 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useCart } from "@/contexts/CartContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { apiClient } from "@/lib/api";
 import { Package, AlertCircle, ShoppingCart, LogIn } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { CartIcon } from "@/components/CartIcon";
 
 const ProductsBrowse = () => {
   const { t } = useTranslation();
+  const { addToCart } = useCart();
+  const { toast } = useToast();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -51,6 +56,7 @@ const ProductsBrowse = () => {
             <p className="text-muted-foreground">{t('products.browseDescription')}</p>
           </div>
           <div className="flex gap-2">
+            <CartIcon />
             {!apiClient.isAuthenticated() && (
               <Button onClick={() => navigate("/login")}>
                 <LogIn className="h-4 w-4 mr-2" />
@@ -132,13 +138,22 @@ const ProductsBrowse = () => {
                         if (!apiClient.isAuthenticated()) {
                           navigate('/login');
                         } else {
-                          // Future: Add to cart or order functionality
-                          alert(t('products.orderFunctionalityComingSoon'));
+                          addToCart({
+                            product_id: product.id,
+                            product_name: product.name,
+                            price: product.price,
+                            image_url: product.image_url,
+                            stock: product.stock,
+                          });
+                          toast({
+                            title: t('cart.addedToCart'),
+                            description: t('cart.addedToCartDescription', { name: product.name }),
+                          });
                         }
                       }}
                     >
                       <ShoppingCart className="h-4 w-4 mr-2" />
-                      {product.stock > 0 ? t('products.orderNow') : t('products.outOfStockButton')}
+                      {product.stock > 0 ? t('cart.addToCart') : t('products.outOfStockButton')}
                     </Button>
                   </div>
                 </CardContent>
