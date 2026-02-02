@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 type LoginStep = 'credentials' | 'pgp-setup' | 'pgp-challenge';
 
 const Login = () => {
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
@@ -62,7 +64,7 @@ const Login = () => {
       // Direct login (regular user)
       navigate("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setError(err instanceof Error ? err.message : t('auth.loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -77,7 +79,7 @@ const Login = () => {
       await apiClient.register(username, password, email);
       navigate("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+      setError(err instanceof Error ? err.message : t('auth.registrationFailed'));
     } finally {
       setLoading(false);
     }
@@ -107,12 +109,12 @@ const Login = () => {
         });
         setLoginStep('pgp-challenge');
         toast({
-          title: "PGP Setup Complete!",
-          description: "Now sign the challenge to complete authentication.",
+          title: t('auth.pgpSetupComplete'),
+          description: t('auth.signChallengeToComplete'),
         });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "PGP setup failed");
+      setError(err instanceof Error ? err.message : t('errors.internalError'));
       apiClient.token = null;
     } finally {
       setLoading(false);
@@ -128,7 +130,7 @@ const Login = () => {
       await apiClient.verifyPgp(pgpChallenge!.userId, signature);
       navigate("/dashboard");
     } catch (err) {
-      setError("Signature verification failed. Please try again.");
+      setError(t('auth.signatureVerificationFailed'));
       // Reset to credentials step
       setLoginStep('credentials');
       setPgpChallenge(null);
@@ -143,8 +145,8 @@ const Login = () => {
     if (pgpChallenge) {
       navigator.clipboard.writeText(pgpChallenge.challenge);
       toast({
-        title: "Copied!",
-        description: "Challenge string copied to clipboard",
+        title: t('auth.copied'),
+        description: t('auth.challengeCopied'),
       });
     }
   };
@@ -154,7 +156,7 @@ const Login = () => {
     const now = new Date().getTime();
     const expires = new Date(pgpChallenge.expiresAt).getTime();
     const remaining = Math.floor((expires - now) / 1000);
-    if (remaining <= 0) return "Expired";
+    if (remaining <= 0) return t('auth.expired');
     const minutes = Math.floor(remaining / 60);
     const seconds = remaining % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -169,9 +171,9 @@ const Login = () => {
             <div className="flex items-center justify-center mb-4">
               <Key className="h-12 w-12 text-primary" />
             </div>
-            <CardTitle className="text-2xl text-center">Set Up PGP Authentication</CardTitle>
+            <CardTitle className="text-2xl text-center">{t('auth.pgpSetupTitle')}</CardTitle>
             <CardDescription className="text-center">
-              As an admin, you need to configure PGP 2FA to secure your account
+              {t('auth.pgpSetupDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -186,23 +188,22 @@ const Login = () => {
               <Alert>
                 <Shield className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>First time setup:</strong> Generate a PGP key and paste your public key below.
-                  You'll need to sign a challenge on every login.
+                  <strong>{t('auth.firstTimeSetup')}:</strong> {t('auth.generatePgpKey')}
                 </AlertDescription>
               </Alert>
 
               <div className="bg-muted p-4 rounded-lg space-y-2">
-                <p className="text-sm font-semibold">Quick Setup Guide:</p>
+                <p className="text-sm font-semibold">{t('auth.quickSetupGuide')}</p>
                 <div className="font-mono text-xs space-y-1">
-                  <p className="text-muted-foreground"># 1. Generate a PGP key</p>
+                  <p className="text-muted-foreground"># 1. {t('auth.generateKey')}</p>
                   <p>gpg --full-generate-key</p>
-                  <p className="text-muted-foreground mt-2"># 2. Export your public key</p>
+                  <p className="text-muted-foreground mt-2"># 2. {t('auth.exportPublicKey')}</p>
                   <p>gpg --armor --export your-email@example.com</p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="publicKey">Your PGP Public Key</Label>
+                <Label htmlFor="publicKey">{t('auth.pgpPublicKey')}</Label>
                 <Textarea
                   id="publicKey"
                   placeholder="-----BEGIN PGP PUBLIC KEY BLOCK-----&#10;&#10;[Paste your public key here]&#10;&#10;-----END PGP PUBLIC KEY BLOCK-----"
@@ -213,7 +214,7 @@ const Login = () => {
                   className="font-mono text-sm"
                 />
                 <p className="text-sm text-muted-foreground">
-                  Include the full key with BEGIN/END headers
+                  {t('auth.includeFullKey')}
                 </p>
               </div>
 
@@ -229,10 +230,10 @@ const Login = () => {
                     setPassword('');
                   }}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button type="submit" className="flex-1" disabled={loading || !publicKey.trim()}>
-                  {loading ? "Setting up..." : "Continue to Login"}
+                  {loading ? t('auth.settingUp') : t('auth.continueToLogin')}
                 </Button>
               </div>
             </form>
@@ -251,9 +252,9 @@ const Login = () => {
             <div className="flex items-center justify-center mb-4">
               <Shield className="h-12 w-12 text-primary" />
             </div>
-            <CardTitle className="text-2xl text-center">PGP Authentication Required</CardTitle>
+            <CardTitle className="text-2xl text-center">{t('auth.pgpAuthRequired')}</CardTitle>
             <CardDescription className="text-center">
-              Sign the challenge with your PGP private key to complete login
+              {t('auth.pgpDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -267,7 +268,7 @@ const Login = () => {
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>Challenge String</Label>
+                  <Label>{t('auth.challengeString')}</Label>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4" />
                     <span>{getTimeRemaining()}</span>
@@ -284,15 +285,15 @@ const Login = () => {
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Sign with: <code className="bg-muted px-2 py-1 rounded">echo "{pgpChallenge.challenge}" | gpg --clearsign</code>
+                  {t('auth.signWith')} <code className="bg-muted px-2 py-1 rounded">echo "{pgpChallenge.challenge}" | gpg --clearsign</code>
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signature">PGP Signature</Label>
+                <Label htmlFor="signature">{t('auth.pgpSignature')}</Label>
                 <Textarea
                   id="signature"
-                  placeholder="Paste your PGP signature here (including -----BEGIN PGP SIGNATURE----- headers)"
+                  placeholder={t('auth.pastePgpSignature')}
                   value={signature}
                   onChange={(e) => setSignature(e.target.value)}
                   required
@@ -315,10 +316,10 @@ const Login = () => {
                     setSetupToken('');
                   }}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button type="submit" className="flex-1" disabled={loading || !signature}>
-                  {loading ? "Verifying..." : "Verify & Login"}
+                  {loading ? t('auth.verifying') : t('auth.verifyAndLogin')}
                 </Button>
               </div>
             </form>
@@ -337,12 +338,12 @@ const Login = () => {
             <Shield className="h-12 w-12 text-primary" />
           </div>
           <CardTitle className="text-2xl text-center">
-            {isRegistering ? "Create Account" : "Login"}
+            {isRegistering ? t('auth.createAccount') : t('auth.loginTitle')}
           </CardTitle>
           <CardDescription className="text-center">
             {isRegistering
-              ? "Register a new user account"
-              : "Enter your credentials to access the system"}
+              ? t('auth.registerDescription')
+              : t('auth.loginDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -355,11 +356,11 @@ const Login = () => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">{t('auth.username')}</Label>
               <Input
                 id="username"
                 type="text"
-                placeholder={isRegistering ? "Choose a username" : "admin"}
+                placeholder={isRegistering ? t('auth.chooseUsername') : "admin"}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -369,7 +370,7 @@ const Login = () => {
 
             {isRegistering && (
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('auth.email')}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -383,11 +384,11 @@ const Login = () => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('auth.password')}</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder={isRegistering ? "Min 8 characters" : "Enter your password"}
+                placeholder={isRegistering ? t('auth.minCharacters') : t('auth.enterPassword')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -396,7 +397,7 @@ const Login = () => {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (isRegistering ? "Creating..." : "Logging in...") : (isRegistering ? "Create Account" : "Login")}
+              {loading ? (isRegistering ? t('auth.creating') : t('auth.loggingIn')) : (isRegistering ? t('auth.createAccount') : t('auth.loginTitle'))}
             </Button>
 
             <div className="text-center text-sm">
@@ -410,8 +411,8 @@ const Login = () => {
                 className="text-primary hover:underline"
               >
                 {isRegistering
-                  ? "Already have an account? Login"
-                  : "Don't have an account? Register"}
+                  ? t('auth.alreadyHaveAccount')
+                  : t('auth.dontHaveAccount')}
               </button>
             </div>
           </form>

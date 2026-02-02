@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { apiClient } from "@/lib/api";
 import { Package, AlertCircle, ShoppingCart, LogIn } from "lucide-react";
 
 const ProductsBrowse = () => {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -22,7 +24,7 @@ const ProductsBrowse = () => {
       const data = await apiClient.getPublicProducts();
       setProducts(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load products");
+      setError(err instanceof Error ? err.message : t('products.failedToLoad'));
     } finally {
       setLoading(false);
     }
@@ -33,7 +35,7 @@ const ProductsBrowse = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Package className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
-          <p className="text-muted-foreground">Loading products...</p>
+          <p className="text-muted-foreground">{t('products.loadingProducts')}</p>
         </div>
       </div>
     );
@@ -45,19 +47,19 @@ const ProductsBrowse = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Browse Products</h1>
-            <p className="text-muted-foreground">Discover our available products</p>
+            <h1 className="text-3xl font-bold">{t('products.browseTitle')}</h1>
+            <p className="text-muted-foreground">{t('products.browseDescription')}</p>
           </div>
           <div className="flex gap-2">
             {!apiClient.isAuthenticated() && (
               <Button onClick={() => navigate("/login")}>
                 <LogIn className="h-4 w-4 mr-2" />
-                Login
+                {t('common.login')}
               </Button>
             )}
             {apiClient.isAuthenticated() && (
               <Button onClick={() => navigate("/dashboard")}>
-                Dashboard
+                {t('common.dashboard')}
               </Button>
             )}
           </div>
@@ -76,7 +78,7 @@ const ProductsBrowse = () => {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Package className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No products available yet</p>
+              <p className="text-muted-foreground">{t('products.noProductsAvailable')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -106,20 +108,20 @@ const ProductsBrowse = () => {
                     <Badge variant="outline">${product.price}</Badge>
                   </div>
                   <CardDescription className="line-clamp-2">
-                    {product.description || "No description available"}
+                    {product.description || t('products.noDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Stock:</span>
+                      <span className="text-muted-foreground">{t('products.stockLabel')}</span>
                       <span className={product.stock > 0 ? "text-green-600" : "text-red-600"}>
-                        {product.stock > 0 ? `${product.stock} available` : "Out of stock"}
+                        {product.stock > 0 ? `${product.stock} ${t('products.available')}` : t('products.outOfStock')}
                       </span>
                     </div>
                     {product.category && (
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Category:</span>
+                        <span className="text-muted-foreground">{t('products.categoryLabel')}</span>
                         <Badge variant="secondary">{product.category}</Badge>
                       </div>
                     )}
@@ -131,12 +133,12 @@ const ProductsBrowse = () => {
                           navigate('/login');
                         } else {
                           // Future: Add to cart or order functionality
-                          alert('Order functionality coming soon!');
+                          alert(t('products.orderFunctionalityComingSoon'));
                         }
                       }}
                     >
                       <ShoppingCart className="h-4 w-4 mr-2" />
-                      {product.stock > 0 ? "Order Now" : "Out of Stock"}
+                      {product.stock > 0 ? t('products.orderNow') : t('products.outOfStockButton')}
                     </Button>
                   </div>
                 </CardContent>

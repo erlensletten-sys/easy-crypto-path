@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,7 @@ interface Product {
 }
 
 const ProductsManagement = () => {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -58,7 +60,7 @@ const ProductsManagement = () => {
       const data = await apiClient.getProducts();
       setProducts(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load products");
+      setError(err instanceof Error ? err.message : t('products.failedToLoad'));
       if (err instanceof Error && err.message.includes("token")) {
         navigate("/");
       }
@@ -74,8 +76,8 @@ const ProductsManagement = () => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
-        title: "Invalid file type",
-        description: "Please select an image file",
+        title: t('products.invalidFileType'),
+        description: t('products.selectImageFile'),
         variant: "destructive",
       });
       return;
@@ -84,8 +86,8 @@ const ProductsManagement = () => {
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "File too large",
-        description: "Image must be less than 5MB",
+        title: t('products.fileTooLarge'),
+        description: t('products.imageMustBeLess5MB'),
         variant: "destructive",
       });
       return;
@@ -109,13 +111,13 @@ const ProductsManagement = () => {
       const result = await apiClient.uploadProductPhoto(selectedFile);
       setFormData({ ...formData, image_url: result.imageUrl });
       toast({
-        title: "Photo uploaded!",
-        description: "Product photo has been uploaded successfully",
+        title: t('products.photoUploaded'),
+        description: t('products.photoUploadedDescription'),
       });
     } catch (err) {
       toast({
-        title: "Upload failed",
-        description: err instanceof Error ? err.message : "Failed to upload photo",
+        title: t('products.uploadFailed'),
+        description: err instanceof Error ? err.message : t('products.uploadFailedDescription'),
         variant: "destructive",
       });
     } finally {
@@ -159,7 +161,7 @@ const ProductsManagement = () => {
       setPreviewUrl("");
       loadProducts();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save product");
+      setError(err instanceof Error ? err.message : t('products.failedToSave'));
     }
   };
 
@@ -180,13 +182,13 @@ const ProductsManagement = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
+    if (!confirm(t('products.deleteConfirm'))) return;
 
     try {
       await apiClient.deleteProduct(id);
       loadProducts();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete product");
+      setError(err instanceof Error ? err.message : t('products.failedToDelete'));
     }
   };
 
@@ -197,7 +199,7 @@ const ProductsManagement = () => {
       });
       loadProducts();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update product");
+      setError(err instanceof Error ? err.message : t('products.failedToUpdate'));
     }
   };
 
@@ -206,7 +208,7 @@ const ProductsManagement = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Package className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
-          <p className="text-muted-foreground">Loading products...</p>
+          <p className="text-muted-foreground">{t('products.loadingProducts')}</p>
         </div>
       </div>
     );
@@ -219,11 +221,11 @@ const ProductsManagement = () => {
           <div className="flex items-center gap-4">
             <Button variant="outline" onClick={() => navigate("/dashboard")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+              {t('common.back')}
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">Product Management</h1>
-              <p className="text-muted-foreground">Manage your product catalog</p>
+              <h1 className="text-3xl font-bold">{t('products.title')}</h1>
+              <p className="text-muted-foreground">{t('products.description')}</p>
             </div>
           </div>
 
@@ -236,14 +238,14 @@ const ProductsManagement = () => {
                 setPreviewUrl("");
               }}>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Product
+                {t('products.addProduct')}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
+                <DialogTitle>{editingProduct ? t('products.editProduct') : t('products.newProduct')}</DialogTitle>
                 <DialogDescription>
-                  {editingProduct ? "Update product details" : "Add a new product to your catalog"}
+                  {editingProduct ? t('products.updateDetails') : t('products.addToCalog')}
                 </DialogDescription>
               </DialogHeader>
 
@@ -257,7 +259,7 @@ const ProductsManagement = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Product Name *</Label>
+                    <Label htmlFor="name">{t('products.nameRequired')}</Label>
                     <Input
                       id="name"
                       value={formData.name}
@@ -267,7 +269,7 @@ const ProductsManagement = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
+                    <Label htmlFor="category">{t('products.category')}</Label>
                     <Input
                       id="category"
                       value={formData.category}
@@ -277,7 +279,7 @@ const ProductsManagement = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">{t('products.description')}</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
@@ -288,7 +290,7 @@ const ProductsManagement = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="price">Price *</Label>
+                    <Label htmlFor="price">{t('products.priceRequired')}</Label>
                     <Input
                       id="price"
                       type="number"
@@ -300,7 +302,7 @@ const ProductsManagement = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="stock">Stock</Label>
+                    <Label htmlFor="stock">{t('products.stock')}</Label>
                     <Input
                       id="stock"
                       type="number"
@@ -311,7 +313,7 @@ const ProductsManagement = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Product Photo</Label>
+                  <Label>{t('products.photo')}</Label>
                   <div className="flex gap-4 items-start">
                     <div className="flex-1">
                       <Input
@@ -321,7 +323,7 @@ const ProductsManagement = () => {
                         disabled={uploading}
                       />
                       <p className="text-sm text-muted-foreground mt-1">
-                        Max 5MB. JPG, PNG, GIF supported.
+                        {t('products.maxSize')}
                       </p>
                     </div>
                     {selectedFile && !formData.image_url && (
@@ -331,7 +333,7 @@ const ProductsManagement = () => {
                         disabled={uploading}
                       >
                         <Upload className="h-4 w-4 mr-2" />
-                        {uploading ? "Uploading..." : "Upload"}
+                        {uploading ? t('products.uploading') : t('products.uploadPhoto')}
                       </Button>
                     )}
                   </div>
@@ -340,7 +342,7 @@ const ProductsManagement = () => {
                     <div className="relative w-full h-48 bg-muted rounded-lg overflow-hidden mt-2">
                       <img
                         src={previewUrl}
-                        alt="Preview"
+                        alt={t('products.preview')}
                         className="w-full h-full object-cover"
                       />
                       <Button
@@ -357,7 +359,7 @@ const ProductsManagement = () => {
                 </div>
 
                 <Button type="submit" className="w-full">
-                  {editingProduct ? "Update Product" : "Add Product"}
+                  {editingProduct ? t('products.updateProduct') : t('products.addProduct')}
                 </Button>
               </form>
             </DialogContent>
@@ -373,27 +375,27 @@ const ProductsManagement = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Products ({products.length})</CardTitle>
-            <CardDescription>All products in your catalog</CardDescription>
+            <CardTitle>{t('products.productsCount', { count: products.length })}</CardTitle>
+            <CardDescription>{t('products.allProducts')}</CardDescription>
           </CardHeader>
           <CardContent>
             {products.length === 0 ? (
               <div className="text-center py-12">
                 <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No products yet</p>
-                <p className="text-sm text-muted-foreground mt-1">Add your first product to get started</p>
+                <p className="text-muted-foreground">{t('products.noProducts')}</p>
+                <p className="text-sm text-muted-foreground mt-1">{t('products.addFirst')}</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Stock</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>{t('products.name')}</TableHead>
+                      <TableHead>{t('products.category')}</TableHead>
+                      <TableHead>{t('products.price')}</TableHead>
+                      <TableHead>{t('products.stock')}</TableHead>
+                      <TableHead>{t('products.status')}</TableHead>
+                      <TableHead>{t('products.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -409,7 +411,7 @@ const ProductsManagement = () => {
                             className="cursor-pointer"
                             onClick={() => handleToggleActive(product)}
                           >
-                            {product.is_active ? "Active" : "Inactive"}
+                            {product.is_active ? t('common.active') : t('common.inactive')}
                           </Badge>
                         </TableCell>
                         <TableCell>

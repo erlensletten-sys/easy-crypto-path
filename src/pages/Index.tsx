@@ -7,7 +7,7 @@ const Index = () => {
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <CryptoDeposit variant="wallet" title="Wallet" />
+      <CryptoDeposit variant="wallet" title="Lommebok" />
     </div>
   );
 };
